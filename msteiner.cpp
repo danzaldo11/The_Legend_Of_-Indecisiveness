@@ -64,6 +64,6 @@ class Image {
 };
 
 
-Image img[2] = {
-   "main_char2.png",
-   "snow_map" };
+Image img[] = {
+   "",
+   "" };
