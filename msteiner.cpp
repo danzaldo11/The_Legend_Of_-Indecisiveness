@@ -1,6 +1,10 @@
 // Madyson Steiner
 // CMPS 3350
 //
+
+// Map: https://graphicriver.img.customer.envatousercontent.com/files/194999057/previewl.jpg?auto=compress%2Cformat&fit=crop&crop=top&w=590&h=590&s=4ffbcf15824c22e1a243c8a3f0dfd265
+// Character: https://www.pinterest.com/pin/361836151308159517/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,6 +68,6 @@ class Image {
 };
 
 
-Image img[] = {
-   "",
-   "" };
+Image img[1] = {
+   "housemap",
+   "girl_walking" };
