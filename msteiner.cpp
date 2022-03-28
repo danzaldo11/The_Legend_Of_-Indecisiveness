@@ -70,4 +70,4 @@ class Image {
 
 Image img[1] = {
    "housemap",
-   "girl_walking" };
+   "girlwalk.gif" };
