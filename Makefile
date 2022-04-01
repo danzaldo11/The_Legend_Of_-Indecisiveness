@@ -15,7 +15,7 @@ mlara2.o: mlara2.cpp
 msteiner.o: msteiner.cpp
 	g++ -c msteiner.cpp -Wall
 
-walk: walk.cpp
+walk: walk.cpp danzaldo.o gjimenezroja.o mlara2.o msteiner.o
 	g++ $(CFLAGS) walk.cpp libggfonts.a 
 	danzaldo.o gjimenezroja.o mlara2.o msteiner.o 
 	-Wall -Wextra $(LFLAGS) -owalk
