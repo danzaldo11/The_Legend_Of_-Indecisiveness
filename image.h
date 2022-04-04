@@ -1,11 +1,11 @@
 /* Image Header File */
 
-class danzaldo_image {
+class Image {
 public:
 	int width, height;
 	unsigned char *data;
-	~danzaldo_image() { delete [] data; }
-	danzaldo_image(const char *fname) {
+	~Image() { delete [] data; }
+	Image(const char *fname) {
 		if (fname[0] == '\0')
 			return;
 		//printf("fname **%s**\n", fname);
@@ -44,4 +44,4 @@ public:
 		unlink(ppmname);
 	}
 };
-danzaldo_image img[1] = {"images/medievalwalk.gif"};
+Image danzaldo_img[1] = {"images/medievalwalk.gif"};
