@@ -1,7 +1,7 @@
 CFLAGS = -I ./include
 LFLAGS = -lrt -lX11 -lGLU -lGL -pthread -lm #-lXrandr
 
-all: walk
+all: walk danzaldo.o gjimenezroja.o mlara2.o msteiner.o
 
 danzaldo.o: danzaldo.cpp
 	g++ -c danzaldo.cpp -Wall
