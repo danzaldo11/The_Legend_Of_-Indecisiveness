@@ -1,6 +1,6 @@
 /* Image Header File */
 
-class Image {
+class danzaldo_image {
 public:
 	int width, height;
 	unsigned char *data;
@@ -44,4 +44,4 @@ public:
 		unlink(ppmname);
 	}
 };
-Image img[1] = {"images/medievalwalk.gif"};
+danzaldo_image img[1] = {"images/medievalwalk.gif"};
