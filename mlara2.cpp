@@ -15,14 +15,11 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include "image.h"
 //#include "credits.h"
 
 //Mouse and keyboard
 //Credits
 //Run Map and Character
 
-
-
-/*Image img[2] = {"girl_char.gif",
-                 "beach_map"};
-*/
+Image img[1] = {"images/girl_char.gif"};
