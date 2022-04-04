@@ -15,11 +15,30 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include "image.h"
+//#include "image.h"
 //#include "credits.h"
+
 
 //Mouse and keyboard
 //Credits
 //Run Map and Character
 
-Image img[1] = {"images/girl_char.gif"};
+/*Image img[1] = {"images/girl_char.gif"};
+*/
+
+//checks if given number is even
+void mlara2Even(int x){
+  
+     if(x % 2 ==0){
+         printf("test passed! Number is even");
+     }
+ 
+     else{
+         printf("test failed! Number is not even");
+ }
+}
+
+//added main so my file can make
+int main(){
+  return 0; 
+}
