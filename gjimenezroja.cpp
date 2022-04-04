@@ -21,6 +21,6 @@
 #include "credits.h"
 
 Image img[2] = {
-   "main_char2.gif",  
-   "snow_map.png" };
+   "Images/main_char2.gif",  
+   "Images/snow_map.png" };
 
