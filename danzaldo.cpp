@@ -21,14 +21,3 @@ void danzaldo_gameover(int health) {
         printf("Health: %i\n", health);
     }   
 }
-
-int main() {
-    /* int health = 100;
-    danzaldo_gameover(health);
-    health = 25;
-    danzaldo_gameover(health);
-    health = 0;
-    danzaldo_gameover(health); */
-
-    return 0;
-}
