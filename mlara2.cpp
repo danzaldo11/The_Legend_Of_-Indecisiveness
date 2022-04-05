@@ -35,10 +35,5 @@ void mlara2Even(int x){
  
      else{
          printf("test failed! Number is not even");
- }
-}
-
-//added main so my file can make
-int main(){
-  return 0; 
+     }
 }
