@@ -28,7 +28,7 @@ Image img[2] = {
 
 void gjimenezroja(int number){
    if(number > 0) {
-      printf("You have this many apples" , number);
+      printf("You have this many apples %i", number);
    } else {
       printf("Invalid, put a number"); 
    }
