@@ -26,9 +26,4 @@ void msteiner_Check_Stamina(int stamina)
     }
 }
 
-int main()
-{
-    msteiner_Check_Stamina(100);
 
-    return 0;
-}
