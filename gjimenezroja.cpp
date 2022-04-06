@@ -20,7 +20,16 @@
 #include "image.h"
 #include "credits.h"
 
+/*
 Image img[2] = {
    "Images/main_char2.gif",  
    "Images/snow_map.png" };
+*/
 
+void gjimenezroja(int number){
+   if(number > 0) {
+      printf("You have this many apples" , number);
+   } else {
+      printf("Invalid, put a number"); 
+   }
+}
