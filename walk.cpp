@@ -85,8 +85,9 @@ public:
 		unlink(ppmname);
 	}
 };
-Image img[1] = {"images/walk.gif"};
-
+Image img[1] = {"images/walk.gif"},
+	danzaldo_img = {images/castle.jpg"},
+	danzaldo_sprite = {images/knight.png"};
 
 //-----------------------------------------------------------------------------
 //Setup timers
@@ -237,6 +238,10 @@ int main(void)
 	initOpengl();
 	init();
 	int done = 0;
+	
+	timers.recordTime(&timers.walkTime);
+			g.walk ^= 1;
+	
 	while (!done) {
 		while (x11.getXPending()) {
 			XEvent e = x11.getXNextEvent();
@@ -376,9 +381,13 @@ int checkKeys(XEvent *e)
 	}
 	(void)shift;
 	switch (key) {
-		case XK_w:
-			timers.recordTime(&timers.walkTime);
-			g.walk ^= 1;
+		case XK_1:
+			break;
+		case XK_2:
+			break;
+		case XK_3:
+			break;
+		case XK_4:
 			break;
 		case XK_Left:
 			break;
@@ -387,14 +396,6 @@ int checkKeys(XEvent *e)
 		case XK_Up:
 			break;
 		case XK_Down:
-			break;
-		case XK_equal:
-			g.delay -= 0.005;
-			if (g.delay < 0.005)
-				g.delay = 0.005;
-			break;
-		case XK_minus:
-			g.delay += 0.005;
 			break;
 		case XK_Escape:
 			return 1;
@@ -537,17 +538,9 @@ void render(void)
 	r.bot = g.yres - 20;
 	r.left = 10;
 	r.center = 0;
-	ggprint8b(&r, 16, c, "W   Walk cycle");
-	ggprint8b(&r, 16, c, "+   faster");
-	ggprint8b(&r, 16, c, "-   slower");
-	ggprint8b(&r, 16, c, "right arrow -> walk right");
-	ggprint8b(&r, 16, c, "left arrow  <- walk left");
-	ggprint8b(&r, 16, c, "frame: %i", g.walkFrame);
+	ggprint8b(&r, 16, c, "The Legend of Indecisiveness");
+	ggprint8b(&r, 16, c, "1 - Medieval Level");
+	ggprint8b(&r, 16, c, "2 - Snow Level");
+	ggprint8b(&r, 16, c, "3 - mlara2 Level");
+	ggprint8b(&r, 16, c, "4 - msteiner Level");
 }
-
-
-
-
-
-
-
