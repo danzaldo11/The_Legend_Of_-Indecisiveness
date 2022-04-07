@@ -27,7 +27,7 @@ Image img[2] = {
 */
 
 void gjimenezroja(int inventory){
-   if(inventory < 51) {
+   if(inventory < 101) {
       printf("You have this many apples %i", inventory);
    } else if (inventory < 0){
       printf("You have no apples"); 
