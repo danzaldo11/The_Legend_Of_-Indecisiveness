@@ -219,6 +219,7 @@ int checkKeys(XEvent *e);
 void init();
 void physics(void);
 void render(void);
+void danzaldo_gameover(int health);
 
 
 int main(void)
@@ -435,6 +436,13 @@ void physics(void)
 
 void render(void)
 {
+	g.health -= 25;
+	danzaldo_gameover(g.health);
+    	g.health -= 50;
+    	danzaldo_gameover(g.health);
+    	g.health -= 100;
+    	danzaldo_gameover(g.health);
+	
 	Rect r;
 	//Clear the screen
 	glClearColor(0.1, 0.1, 0.1, 1.0);
