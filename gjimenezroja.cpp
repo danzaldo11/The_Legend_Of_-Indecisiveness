@@ -17,8 +17,8 @@
 #include <unistd.h>
 #include <time.h>
 #include <math.h>
-#include "image.h"
-#include "credits.h"
+//#include "image.h"
+//#include "credits.h"
 
 /*
 Image img[2] = {
