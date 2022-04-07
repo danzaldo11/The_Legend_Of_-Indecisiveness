@@ -443,6 +443,9 @@ void render(void)
     	g.health -= 100;
     	danzaldo_gameover(g.health);
 	
+	g.stamina -= 25;
+	msteiner_Check_Stamina(g.stamina);
+	
 	Rect r;
 	//Clear the screen
 	glClearColor(0.1, 0.1, 0.1, 1.0);
