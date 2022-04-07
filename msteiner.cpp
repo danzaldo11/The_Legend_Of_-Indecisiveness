@@ -9,8 +9,6 @@
 #include <time.h>
 #include <math.h>
 
-void msteiner_Check_Stamina(int stamina);
-
 void msteiner_Check_Stamina(int stamina)
 {
     //stamina = 100;
