@@ -25,7 +25,6 @@ Image img[2] = {
    "Images/main_char2.gif",  
    "Images/snow_map.png" };
 */
-void gjimenezroja(int inventory); 
 
 void gjimenezroja(int inventory){
    if(inventory < 51) {
