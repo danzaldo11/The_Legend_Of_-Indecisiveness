@@ -467,7 +467,9 @@ void render(void)
 	g.stamina -= 75;
 	msteiner_Check_Stamina(g.stamina);
 	
-	g.inventory -=3; 
+	g.inventory = 15; 
+	gjimenezroja(g.inventory); 
+	g.inventory = 52; 
 	gjimenezroja(g.inventory); 
 	
 	g.a -=50;
