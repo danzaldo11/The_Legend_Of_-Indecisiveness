@@ -18,7 +18,7 @@
 #include "fonts.h"
 #include "danzaldo.h"
 #include "msteiner.h"
-
+#include "gjimenezroja.h"
 //defined types
 typedef double Flt;
 typedef double Vec[3];
@@ -223,6 +223,7 @@ void physics(void);
 void render(void);
 void danzaldo_gameover(int health);
 void msteiner_Check_Stamina(int stamina);
+void gjimenezroja(int inventory); 
 
 int main(void)
 {
@@ -449,6 +450,9 @@ void render(void)
 	msteiner_Check_Stamina(g.stamina);
 	g.stamina -= 75;
 	msteiner_Check_Stamina(g.stamina);
+	
+	g.inventory -=3; 
+	gjimenezroja(g.inventory); 
 	
 	Rect r;
 	//Clear the screen
