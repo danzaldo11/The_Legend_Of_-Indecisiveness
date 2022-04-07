@@ -14,6 +14,8 @@
 #include <time.h>
 #include <math.h>
 
+void danzaldo_gameover(int health);
+
 void danzaldo_gameover(int health) {
     if (health <= 0) {
         printf("You Died!\n");
