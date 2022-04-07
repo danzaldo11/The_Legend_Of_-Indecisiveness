@@ -442,13 +442,26 @@ void physics(void)
 
 void render(void)
 {
-	g.health -= 25;
-	danzaldo_gameover(g.health);
+	printf("Dylan's function call\n");
+    	g.health -= 25;
+    	if (danzaldo_gameover(g.health) == 1) {
+        	printf("You Died!\n");
+    	} else {
+        	printf("Health: %i\n", g.health);
+    	}   
     	g.health -= 50;
-    	danzaldo_gameover(g.health);
+    	if (danzaldo_gameover(g.health) == 1) {
+        	printf("You Died!\n");
+    	} else {
+        	printf("Health: %i\n", g.health);
+    	}   
     	g.health -= 100;
-    	danzaldo_gameover(g.health);
-	
+    	if (danzaldo_gameover(g.health) == 1) {
+        	printf("You Died!\n");
+    	} else {
+        	printf("Health: %i\n", g.health);
+    	}   
+    
 	g.stamina -= 25;
 	msteiner_Check_Stamina(g.stamina);
 	g.stamina -= 75;
