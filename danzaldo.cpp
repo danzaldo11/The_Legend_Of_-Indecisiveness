@@ -14,10 +14,10 @@
 #include <time.h>
 #include <math.h>
 
-void danzaldo_gameover(int health) {
+int danzaldo_gameover(int health) {
     if (health <= 0) {
-        printf("You Died!\n");
+        return 1;
     } else {
-        printf("Health: %i\n", health);
+        return 0;
     }   
 }
