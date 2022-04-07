@@ -19,6 +19,8 @@
 #include "danzaldo.h"
 #include "msteiner.h"
 #include "gjimenezroja.h"
+#include "mlara2.h"
+
 //defined types
 typedef double Flt;
 typedef double Vec[3];
@@ -224,6 +226,7 @@ void render(void);
 void danzaldo_gameover(int health);
 void msteiner_Check_Stamina(int stamina);
 void gjimenezroja(int inventory); 
+void mlara2_armour(int a);
 
 int main(void)
 {
@@ -453,6 +456,11 @@ void render(void)
 	
 	g.inventory -=3; 
 	gjimenezroja(g.inventory); 
+	
+	g.a -=50;
+	mlara2_armour(g.a);
+	g.a -=100;
+	mlara2_armour(g.a);
 	
 	Rect r;
 	//Clear the screen
