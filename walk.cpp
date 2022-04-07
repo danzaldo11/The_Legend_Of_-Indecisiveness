@@ -16,6 +16,7 @@
 #include <X11/keysym.h>
 #include <GL/glx.h>
 #include "fonts.h"
+#include "danzaldo.h"
 
 //defined types
 typedef double Flt;
