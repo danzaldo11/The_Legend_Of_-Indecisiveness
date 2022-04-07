@@ -17,6 +17,7 @@
 #include <GL/glx.h>
 #include "fonts.h"
 #include "danzaldo.h"
+#include "msteiner.h"
 
 //defined types
 typedef double Flt;
