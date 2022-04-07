@@ -1,3 +1,4 @@
 //Image header file
 
-Image danzaldo_img[1] = {"images/medievalwalk.gif"};
+extern Image danzaldo_img = {"images/castle.jpg"},
+             danzaldo_sprite = {"images/knight.png"};
