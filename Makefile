@@ -12,7 +12,7 @@ gjimenezroja.o: gjimenezroja.cpp
 mlara2.o: mlara2.cpp
 	g++ -c mlara2.cpp -Wall
 
-msteiner.o: msteiner.cpp
+msteiner.o: msteiner.cpp msteiner.h
 	g++ -c msteiner.cpp -Wall
 
 walk: walk.cpp danzaldo.o gjimenezroja.o mlara2.o msteiner.o danzaldo.h
