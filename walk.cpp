@@ -231,10 +231,6 @@ int checkKeys(XEvent *e);
 void init();
 void physics(void);
 void render(void);
-void danzaldo_gameover(int health);
-void msteiner_Check_Stamina(int stamina);
-void gjimenezroja(int inventory); 
-void mlara2_armour(int a);
 
 int main(void)
 {
