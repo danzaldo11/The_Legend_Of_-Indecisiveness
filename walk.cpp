@@ -115,6 +115,10 @@ public:
 
 class Global {
 public:
+	int health;
+	int stamina;
+	int inventory;
+	int a;
 	int done;
 	int xres, yres;
 	int walk;
@@ -123,6 +127,10 @@ public:
 	GLuint walkTexture;
 	Vec box[20];
 	Global() {
+		health = 100;
+		stamina = 100;
+		inventory = 100;
+		a = 100;
 		done=0;
 		xres=800;
 		yres=600;
