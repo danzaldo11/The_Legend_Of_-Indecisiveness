@@ -25,11 +25,14 @@ Image img[2] = {
    "Images/main_char2.gif",  
    "Images/snow_map.png" };
 */
+void gjimenezroja(int inventory); 
 
-void gjimenezroja(int number){
-   if(number > 0) {
-      printf("You have this many apples %i", number);
+void gjimenezroja(int inventory){
+   if(inventory < 51) {
+      printf("You have this many apples %i", inventory);
+   } else if (inventory < 0){
+      printf("You have no apples"); 
    } else {
-      printf("Invalid, put a number"); 
+      printf("Max capacity reached"); 
    }
 }
