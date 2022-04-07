@@ -1,3 +1,3 @@
 //header file for danzaldo.cpp
 
-extern void danzaldo_gameover(int health);
+extern int danzaldo_gameover(int health);
