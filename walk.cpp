@@ -220,7 +220,7 @@ void init();
 void physics(void);
 void render(void);
 void danzaldo_gameover(int health);
-
+void msteiner_Check_Stamina(int stamina);
 
 int main(void)
 {
