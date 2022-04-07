@@ -19,21 +19,15 @@
 //#include "credits.h"
 
 
-//Mouse and keyboard
-//Credits
-//Run Map and Character
-
-/*Image img[1] = {"images/girl_char.gif"};
-*/
-
-//checks if given number is even
-void mlara2Even(int x){
-  
-     if(x % 2 ==0){
-         printf("test passed! Number is even");
-     }
+//checks armour level
+ void mlara2_armour(int a){
+   
+      if(a <= 0){
+          printf("Armour level low, pause to level up.\n");
+          a++;
  
-     else{
-         printf("test failed! Number is not even");
-     }
-}
+      } else {
+          printf("Armour: %i\n", a);
+          a--;
+      }
+ }
