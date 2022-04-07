@@ -445,6 +445,8 @@ void render(void)
 	
 	g.stamina -= 25;
 	msteiner_Check_Stamina(g.stamina);
+	g.stamina -= 75;
+	msteiner_Check_Stamina(g.stamina);
 	
 	Rect r;
 	//Clear the screen
