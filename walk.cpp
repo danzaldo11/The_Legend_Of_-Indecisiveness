@@ -447,13 +447,7 @@ void physics(void)
 
 void render(void)
 {
-	printf("Dylan's function call\n");
-    	g.health = rand() % 100;
-    	if (danzaldo_gameover(g.health) == 1) 
-        	printf("You Died!\n");
-    	else 
-        	printf("Health: %i\n", g.health);
-    	 
+    	danzaldo_gameover(g.health);
     
 	g.stamina -= 25;
 	msteiner_Check_Stamina(g.stamina);
