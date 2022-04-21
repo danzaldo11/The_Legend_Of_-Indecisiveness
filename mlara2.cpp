@@ -4,10 +4,10 @@
 // 
 
 //Websites used:
-//Character: https://www.pinterest.ie/pin/257338566191273090/
-//Character: https://www.pngegg.com/en/png-eticx
+// Girl Character: https://sanderfrenken.github.io/Universal-LPC-Spritesheet-Character-Generator/#?body=Humanlike_white&sex=female&shadow=none&nose=Straight_nose_tanned&eyes=Eyes_brown&hair=Curly_long_light_brown&hat=none&visor=none&earring=Earring_gold&necklace=Necklace_gold&shoulders=none&arms=none&dress=none&clothes=Tanktop_yellow&legs=Pants_teal&shoes=Sandals_brown&quiver=none&weapon=Thrust_shovel
+// Beach Map:      https://www.deviantart.com/erichkisaragi/art/Beach-House-604911358
+// Crab:           https://www.pngegg.com/en/png-klfdd
 
-//Map: https://www.deviantart.com/erichkisaragi/art/Beach-House-604911358
 
 #include <stdio.h>
 #include <string.h>
