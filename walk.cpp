@@ -1,540 +1,533 @@
-//3350
-//program: walk.cpp
-//author:  Gordon Griesel
-//date:    summer 2017 - 2018
+//modified by: Dylan Anzaldo
+//date: Wed Apr 20 2022
 //
-//Walk cycle using a sprite sheet.
-//images courtesy: http://games.ucla.edu/resource/walk-cycles/
+//author: Gordon Griesel
+//date: Spring 2022
+//purpose: get openGL working on your personal computer
 //
+#include <iostream>
+#include <fstream>
+using namespace std;
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-#include <time.h>
-#include <math.h>
+#include <cstdlib>
+#include <ctime>
+#include <cstring>
+#include <cmath>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
+//for text on the screen
 #include "fonts.h"
 #include "danzaldo.h"
 #include "msteiner.h"
 #include "gjimenezroja.h"
 #include "mlara2.h"
 
-//defined types
-typedef double Flt;
-typedef double Vec[3];
-typedef Flt	Matrix[4][4];
-
-//macros
-#define rnd() (((double)rand())/(double)RAND_MAX)
-#define random(a) (rand()%a)
-#define MakeVector(x, y, z, v) (v)[0]=(x),(v)[1]=(y),(v)[2]=(z)
-#define VecCopy(a,b) (b)[0]=(a)[0];(b)[1]=(a)[1];(b)[2]=(a)[2]
-#define VecDot(a,b)	((a)[0]*(b)[0]+(a)[1]*(b)[1]+(a)[2]*(b)[2])
-#define VecSub(a,b,c) (c)[0]=(a)[0]-(b)[0]; \
-                      (c)[1]=(a)[1]-(b)[1]; \
-                      (c)[2]=(a)[2]-(b)[2]
-//constants
-const float timeslice = 1.0f;
-const float gravity = -0.2f;
-#define ALPHA 1
-
+//MVC architecture
+//M - Model
+//V - View
+//C - Controller
 
 class Image {
 public:
-	int width, height;
-	unsigned char *data;
-	~Image() { delete [] data; }
-	Image(const char *fname) {
-		if (fname[0] == '\0')
-			return;
-		//printf("fname **%s**\n", fname);
-		char name[40];
-		strcpy(name, fname);
-		int slen = strlen(name);
-		name[slen-4] = '\0';
-		//printf("name **%s**\n", name);
-		char ppmname[80];
-		sprintf(ppmname,"%s.ppm", name);
-		//printf("ppmname **%s**\n", ppmname);
-		char ts[100];
-		//system("convert eball.jpg eball.ppm");
-		sprintf(ts, "convert %s %s", fname, ppmname);
-		system(ts);
-		//sprintf(ts, "%s", name);
-		FILE *fpi = fopen(ppmname, "r");
-		if (fpi) {
-			char line[200];
-			fgets(line, 200, fpi);
-			fgets(line, 200, fpi);
-			while (line[0] == '#')
-				fgets(line, 200, fpi);
-			sscanf(line, "%i %i", &width, &height);
-			fgets(line, 200, fpi);
-			//get pixel data
-			int n = width * height * 3;			
-			data = new unsigned char[n];			
-			for (int i=0; i<n; i++)
-				data[i] = fgetc(fpi);
-			fclose(fpi);
-		} else {
-			printf("ERROR opening image: %s\n",ppmname);
-			exit(0);
-		}
-		unlink(ppmname);
-	}
-};
-Image img[1] = {"images/walk.gif"},
-	danzaldo_img = {images/castle.jpg"},
-	danzaldo_sprite = {images/knight.png"};
+    int width, height, max;
+    char *data;
+    Image() { }
+    Image(const char *fname) {
+        bool isPPM = true;
+        char str[1200];
+        char newfile[200];
+        ifstream fin;
+        char *p = strstr((char *)fname, ".ppm");
+        if (!p) {
+            //not a ppm file
+            isPPM = false;
+            strcpy(newfile, fname);
+            newfile[strlen(newfile)+4] = '\0';
+            strcat(newfile, ".ppm");
+            sprintf(str, "convert %s %s", fname, newfile);
+            system(str);
+            fin.open(newfile);
+        } else {
+            fin.open(fname);
+        }
+        char p6[10];
+        fin >> p6;
+        fin >> width >> height;
+        fin >> max;
+        data = new char [width * height * 3];
+        fin.read(data, width * height * 3);
+        fin.close();
+        if (!isPPM)
+            unlink(newfile);
+    }
+} img("images/start_screen.png"),
+  sprite("images/fairy.png");
 
-//-----------------------------------------------------------------------------
-//Setup timers
-class Timers {
+struct Vector {
+    float x,y,z;
+};
+
+typedef double Flt;
+//a game object
+class Bee {
 public:
-	double physicsRate;
-	double oobillion;
-	struct timespec timeStart, timeEnd, timeCurrent;
-	struct timespec walkTime;
-	Timers() {
-		physicsRate = 1.0 / 30.0;
-		oobillion = 1.0 / 1e9;
-	}
-	double timeDiff(struct timespec *start, struct timespec *end) {
-		return (double)(end->tv_sec - start->tv_sec ) +
-				(double)(end->tv_nsec - start->tv_nsec) * oobillion;
-	}
-	void timeCopy(struct timespec *dest, struct timespec *source) {
-		memcpy(dest, source, sizeof(struct timespec));
-	}
-	void recordTime(struct timespec *t) {
-		clock_gettime(CLOCK_REALTIME, t);
-	}
-} timers;
-//-----------------------------------------------------------------------------
+    Flt pos[3];      //vector
+    Flt vel[3];      //vector
+    float w, h;
+    unsigned int color;
+    bool alive_or_dead;
+    void set_dimensions(int x, int y) {
+        w = (float)x * 0.05;
+        h = w;
+        y = y;
+    }
+    Bee() {
+        w = h = 4.0;
+        pos[0] = 1.0;
+        pos[1] = 200.0;
+        vel[0] = 4.0;
+        vel[1] = 0.0;
+    }
+};
+
+enum { 
+    STATE_TOP,
+    STATE_INTRO,
+    STATE_LEVEL_ONE,
+    STATE_LEVEL_TWO,
+    STATE_LEVEL_THREE,
+    STATE_LEVEL_FOUR,
+    STATE_GAME_OVER,
+    STATE_BOTTOM,
+};
 
 class Global {
 public:
-	int health;
-	int stamina;
-	int inventory;
-	int a;
-	int done;
 	int xres, yres;
-	int walk;
-	int walkFrame;
-	double delay;
-	GLuint walkTexture;
-	Vec box[20];
-	Global() {
-		health = 100;
-		stamina = 100;
-		inventory = 100;
-		a = 100;
-		done=0;
-		xres=800;
-		yres=600;
-		walk=0;
-		walkFrame=0;
-		delay = 0.1;
-		for (int i=0; i<20; i++) {
-			box[i][0] = rnd() * xres;
-			box[i][1] = rnd() * (yres-220) + 220.0;
-			box[i][2] = 0.0;
-		}
-	}
+    Bee bees[2];
+    unsigned int texid;
+    unsigned int spriteid;
+    //the box components
+    float pos[2];
+    float w;
+    float dir;
+    int inside;
+    Flt gravity;
+    int frameno;
+    int state;
+    int health;
+	Global() {   
+        xres = 400;
+        yres = 200;
+        //box
+        w = 20.0f;
+        pos[0] = 0.0f + w;
+        pos[1] = yres/2.0f;
+        dir = 25.0f;
+        inside = 0;
+        gravity = 20.0;
+        frameno = 1.0;
+        state = STATE_INTRO;
+        health = 100;
+    }
 } g;
 
 class X11_wrapper {
 private:
 	Display *dpy;
 	Window win;
+	GLXContext glc;
 public:
-	X11_wrapper() {
-		GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
-		//GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, None };
-		XSetWindowAttributes swa;
-		setupScreenRes(g.xres, g.yres);
-		dpy = XOpenDisplay(NULL);
-		if (dpy == NULL) {
-			printf("\n\tcannot connect to X server\n\n");
-			exit(EXIT_FAILURE);
-		}
-		Window root = DefaultRootWindow(dpy);
-		XVisualInfo *vi = glXChooseVisual(dpy, 0, att);
-		if (vi == NULL) {
-			printf("\n\tno appropriate visual found\n\n");
-			exit(EXIT_FAILURE);
-		} 
-		Colormap cmap = XCreateColormap(dpy, root, vi->visual, AllocNone);
-		swa.colormap = cmap;
-		swa.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
-							StructureNotifyMask | SubstructureNotifyMask;
-		win = XCreateWindow(dpy, root, 0, 0, g.xres, g.yres, 0,
-								vi->depth, InputOutput, vi->visual,
-								CWColormap | CWEventMask, &swa);
-		GLXContext glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
-		glXMakeCurrent(dpy, win, glc);
-		setTitle();
-	}
-	~X11_wrapper() {
-		XDestroyWindow(dpy, win);
-		XCloseDisplay(dpy);
-	}
-	void setTitle() {
-		//Set the window title bar.
-		XMapWindow(dpy, win);
-		XStoreName(dpy, win, "Walk Cycle");
-	}
-	void setupScreenRes(const int w, const int h) {
-		g.xres = w;
-		g.yres = h;
-	}
-	void reshapeWindow(int width, int height) {
-		//window has been resized.
-		setupScreenRes(width, height);
-		glViewport(0, 0, (GLint)width, (GLint)height);
-		glMatrixMode(GL_PROJECTION); glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW); glLoadIdentity();
-		glOrtho(0, g.xres, 0, g.yres, -1, 1);
-		setTitle();
-	}
-	void checkResize(XEvent *e) {
-		//The ConfigureNotify is sent by the
-		//server if the window is resized.
-		if (e->type != ConfigureNotify)
-			return;
-		XConfigureEvent xce = e->xconfigure;
-		if (xce.width != g.xres || xce.height != g.yres) {
-			//Window size did change.
-			reshapeWindow(xce.width, xce.height);
-		}
-	}
-	bool getXPending() {
-		return XPending(dpy);
-	}
-	XEvent getXNextEvent() {
-		XEvent e;
-		XNextEvent(dpy, &e);
-		return e;
-	}
-	void swapBuffers() {
-		glXSwapBuffers(dpy, win);
-	}
-
+	~X11_wrapper();
+	X11_wrapper();
+	void set_title();
+	bool getXPending();
+	XEvent getXNextEvent();
+	void swapBuffers();
+	void reshape_window(int width, int height);
+	void check_resize(XEvent *e);
+	void check_mouse(XEvent *e);
+	int check_keys(XEvent *e);
 } x11;
 
-//function prototypes
-void initOpengl(void);
-void checkMouse(XEvent *e);
-int checkKeys(XEvent *e);
-void init();
+//Function prototypes
+void init_opengl(void);
 void physics(void);
 void render(void);
 
-int main(void)
+int main()
 {
-	initOpengl();
-	init();
+	init_opengl();
+	//main game loop
 	int done = 0;
-	
-	timers.recordTime(&timers.walkTime);
-			g.walk ^= 1;
-	
 	while (!done) {
+		//process events...
 		while (x11.getXPending()) {
 			XEvent e = x11.getXNextEvent();
-			x11.checkResize(&e);
-			checkMouse(&e);
-			done = checkKeys(&e);
+			x11.check_resize(&e);
+			x11.check_mouse(&e);
+			done = x11.check_keys(&e);
 		}
-		physics();
-		render();
-		x11.swapBuffers();
+		physics();           //move things
+		render();            //draw things
+		x11.swapBuffers();   //make video memory visible
+		usleep(200);         //pause to let X11 work better
 	}
-	cleanup_fonts();
+    cleanup_fonts();
 	return 0;
 }
 
-unsigned char *buildAlphaData(Image *img)
+X11_wrapper::~X11_wrapper()
 {
-	//add 4th component to RGB stream...
-	int i;
-	unsigned char *newdata, *ptr;
-	unsigned char *data = (unsigned char *)img->data;
-	newdata = (unsigned char *)malloc(img->width * img->height * 4);
-	ptr = newdata;
-	unsigned char a,b,c;
-	//use the first pixel in the image as the transparent color.
-	unsigned char t0 = *(data+0);
-	unsigned char t1 = *(data+1);
-	unsigned char t2 = *(data+2);
-	for (i=0; i<img->width * img->height * 3; i+=3) {
-		a = *(data+0);
-		b = *(data+1);
-		c = *(data+2);
-		*(ptr+0) = a;
-		*(ptr+1) = b;
-		*(ptr+2) = c;
-		*(ptr+3) = 1;
-		if (a==t0 && b==t1 && c==t2)
-			*(ptr+3) = 0;
-		//-----------------------------------------------
-		ptr += 4;
-		data += 3;
-	}
-	return newdata;
+	XDestroyWindow(dpy, win);
+	XCloseDisplay(dpy);
 }
 
-void initOpengl(void)
+X11_wrapper::X11_wrapper()
 {
-	//OpenGL initialization
-	glViewport(0, 0, g.xres, g.yres);
-	//Initialize matrices
+	GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+	int w = g.xres, h = g.yres;
+	dpy = XOpenDisplay(NULL);
+	if (dpy == NULL) {
+		cout << "\n\tcannot connect to X server\n" << endl;
+		exit(EXIT_FAILURE);
+	}
+	Window root = DefaultRootWindow(dpy);
+	XVisualInfo *vi = glXChooseVisual(dpy, 0, att);
+	if (vi == NULL) {
+		cout << "\n\tno appropriate visual found\n" << endl;
+		exit(EXIT_FAILURE);
+	} 
+	Colormap cmap = XCreateColormap(dpy, root, vi->visual, AllocNone);
+	XSetWindowAttributes swa;
+	swa.colormap = cmap;
+	swa.event_mask =
+		ExposureMask | KeyPressMask | KeyReleaseMask |
+		ButtonPress | ButtonReleaseMask |
+		PointerMotionMask |
+		StructureNotifyMask | SubstructureNotifyMask;
+	win = XCreateWindow(dpy, root, 0, 0, w, h, 0, vi->depth,
+		InputOutput, vi->visual, CWColormap | CWEventMask, &swa);
+	set_title();
+	glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
+	glXMakeCurrent(dpy, win, glc);
+}
+
+void X11_wrapper::set_title()
+{
+	//Set the window title bar.
+	XMapWindow(dpy, win);
+	XStoreName(dpy, win, "The Legend Of Indecisiveness");
+}
+
+bool X11_wrapper::getXPending()
+{
+	//See if there are pending events.
+	return XPending(dpy);
+}
+
+XEvent X11_wrapper::getXNextEvent()
+{
+	//Get a pending event.
+	XEvent e;
+	XNextEvent(dpy, &e);
+	return e;
+}
+
+void X11_wrapper::swapBuffers()
+{
+	glXSwapBuffers(dpy, win);
+}
+
+void X11_wrapper::reshape_window(int width, int height)
+{
+	//window has been resized.
+    g.bees[0].set_dimensions(g.xres, g.yres);
+	g.xres = width;
+	g.yres = height;
+	//
+	glViewport(0, 0, (GLint)width, (GLint)height);
 	glMatrixMode(GL_PROJECTION); glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW); glLoadIdentity();
-	//This sets 2D mode (no perspective)
 	glOrtho(0, g.xres, 0, g.yres, -1, 1);
-	//
-	glDisable(GL_LIGHTING);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_FOG);
-	glDisable(GL_CULL_FACE);
-	//
-	//Clear the screen
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	//glClear(GL_COLOR_BUFFER_BIT);
-	//Do this to allow fonts
-	glEnable(GL_TEXTURE_2D);
-	initialize_fonts();
-	//
-	//load the images file into a ppm structure.
-	//
-	int w = img[0].width;
-	int h = img[0].height;
-	//
-	//create opengl texture elements
-	glGenTextures(1, &g.walkTexture);
-	//-------------------------------------------------------------------------
-	//silhouette
-	//this is similar to a sprite graphic
-	//
-	glBindTexture(GL_TEXTURE_2D, g.walkTexture);
-	//
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	//
-	//must build a new set of data...
-	unsigned char *walkData = buildAlphaData(&img[0]);	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-		GL_RGBA, GL_UNSIGNED_BYTE, walkData);
-	//free(walkData);
-	//unlink("./images/walk.ppm");
-	//-------------------------------------------------------------------------
 }
 
-void init() {
-
-}
-
-void checkMouse(XEvent *e)
+void X11_wrapper::check_resize(XEvent *e)
 {
-	//Did the mouse move?
-	//Was a mouse button clicked?
+	//The ConfigureNotify is sent by the
+	//server if the window is resized.
+	if (e->type != ConfigureNotify)
+		return;
+	XConfigureEvent xce = e->xconfigure;
+	if (xce.width != g.xres || xce.height != g.yres) {
+		//Window size did change.
+		reshape_window(xce.width, xce.height);
+	}
+}
+//-----------------------------------------------------------------------------
+
+void X11_wrapper::check_mouse(XEvent *e)
+{
 	static int savex = 0;
 	static int savey = 0;
+
+	//Weed out non-mouse events
+	if (e->type != ButtonRelease &&
+		e->type != ButtonPress &&
+		e->type != MotionNotify) {
+		//This is not a mouse event that we care about.
+		return;
+	}
 	//
 	if (e->type == ButtonRelease) {
 		return;
 	}
 	if (e->type == ButtonPress) {
 		if (e->xbutton.button==1) {
-			//Left button is down
+			//Left button was pressed.
+			int y = g.yres - e->xbutton.y;
+            int x = e->xbutton.x;
+            if (x >= g.pos[0]-g.w && x <= g.pos[0]+g.w) {
+                if (y >= g.pos[1]-g.w && y<= g.pos[1]+g.w) {
+                    g.inside++;
+                    printf("hits: %i\n", g.inside);
+                }
+            }
+			return;
 		}
 		if (e->xbutton.button==3) {
-			//Right button is down
+			//Right button was pressed.
+			return;
 		}
 	}
-	if (savex != e->xbutton.x || savey != e->xbutton.y) {
-		//Mouse moved
-		savex = e->xbutton.x;
-		savey = e->xbutton.y;
+	if (e->type == MotionNotify) {
+		//The mouse moved!
+		if (savex != e->xbutton.x || savey != e->xbutton.y) {
+			savex = e->xbutton.x;
+			savey = e->xbutton.y;
+			//Code placed here will execute whenever the mouse moves.
+
+
+		}
 	}
 }
 
-int checkKeys(XEvent *e)
+int X11_wrapper::check_keys(XEvent *e)
 {
-	//keyboard input?
-	static int shift=0;
-	if (e->type != KeyRelease && e->type != KeyPress)
+	if (e->type != KeyPress && e->type != KeyRelease)
 		return 0;
-	int key = (XLookupKeysym(&e->xkey, 0) & 0x0000ffff);
-	if (e->type == KeyRelease) {
-		if (key == XK_Shift_L || key == XK_Shift_R)
-			shift = 0;
-		return 0;
-	}
-	if (key == XK_Shift_L || key == XK_Shift_R) {
-		shift=1;
-		return 0;
-	}
-	(void)shift;
-	switch (key) {
-		case XK_1:
-			break;
-		case XK_2:
-			break;
-		case XK_3:
-			break;
-		case XK_4:
-			break;
-		case XK_Left:
-			break;
-		case XK_Right:
-			break;
-		case XK_Up:
-			break;
-		case XK_Down:
-			break;
-		case XK_Escape:
-			return 1;
-			break;
+	int key = XLookupKeysym(&e->xkey, 0);
+	if (e->type == KeyPress) {
+		switch (key) {
+			case XK_1:
+				g.state = STATE_LEVEL_ONE;
+				break;
+			case XK_Escape:
+				//Escape key was pressed
+				return 1;
+		}
 	}
 	return 0;
 }
 
-Flt VecNormalize(Vec vec)
-{
-	Flt len, tlen;
-	Flt xlen = vec[0];
-	Flt ylen = vec[1];
-	Flt zlen = vec[2];
-	len = xlen*xlen + ylen*ylen + zlen*zlen;
-	if (len == 0.0) {
-		MakeVector(0.0,0.0,1.0,vec);
-		return 1.0;
-	}
-	len = sqrt(len);
-	tlen = 1.0 / len;
-	vec[0] = xlen * tlen;
-	vec[1] = ylen * tlen;
-	vec[2] = zlen * tlen;
-	return(len);
+unsigned char *buildAlphaData(Image *img)
+{   
+    //add 4th component to RGB stream...
+    int i;
+    int a,b,c;
+    unsigned char *newdata, *ptr;
+    unsigned char *data = (unsigned char *)img->data;
+    newdata = (unsigned char *)malloc(img->width * img->height * 4);
+    ptr = newdata;
+    for (i=0; i<img->width * img->height * 3; i+=3) {
+        a = *(data+0);
+        b = *(data+1);
+        c = *(data+2);
+        *(ptr+0) = a;
+        *(ptr+1) = b;
+        *(ptr+2) = c;
+        //-----------------------------------------------
+        //get largest color component...
+        //*(ptr+3) = (unsigned char)((
+        //      (int)*(ptr+0) +
+        //      (int)*(ptr+1) +
+        //      (int)*(ptr+2)) / 3);
+        //d = a;
+        //if (b >= a && b >= c) d = b;
+        //if (c >= a && c >= b) d = c;
+        //*(ptr+3) = d;
+        //-----------------------------------------------
+        //this code optimizes the commented code above.
+        *(ptr+3) = (a!=255 && b!=255 && c!=255);
+        //-----------------------------------------------
+        ptr += 4;
+        data += 3;
+    }
+    return newdata;
 }
 
-void physics(void)
-{
-	if (g.walk) {
-		//man is walking...
-		//when time is up, advance the frame.
-		timers.recordTime(&timers.timeCurrent);
-		double timeSpan = timers.timeDiff(&timers.walkTime, &timers.timeCurrent);
-		if (timeSpan > g.delay) {
-			//advance
-			++g.walkFrame;
-			if (g.walkFrame >= 16)
-				g.walkFrame -= 16;
-			timers.recordTime(&timers.walkTime);
-		}
-		for (int i=0; i<20; i++) {
-			g.box[i][0] -= 2.0 * (0.05 / g.delay);
-			if (g.box[i][0] < -10.0)
-				g.box[i][0] += g.xres + 10.0;
-		}
-	}
-}
 
-void render(void)
+void init_opengl(void)
 {
-    	danzaldo_gameover(g.health);
-    
-	g.stamina -= 25;
-	msteiner_Check_Stamina(g.stamina);
-	g.stamina -= 75;
-	msteiner_Check_Stamina(g.stamina);
-	
-	g.inventory -= 15; 
-	gjimenezroja(g.inventory); 
-	g.inventory += 52; 
-	gjimenezroja(g.inventory); 
-	
-	g.a -=50;
-	mlara2_armour(g.a);
-	g.a -=100;
-	mlara2_armour(g.a);
-	
-	Rect r;
-	//Clear the screen
+	//OpenGL initialization
+	glViewport(0, 0, g.xres, g.yres);
+	//Initialize matrices
+	glMatrixMode(GL_PROJECTION); glLoadIdentity();
+	//Set 2D mode (no perspective)
+	glOrtho(0, g.xres, 0, g.yres, -1, 1);
+    //
+    glMatrixMode(GL_MODELVIEW); glLoadIdentity();
+	//Set the screen background color
 	glClearColor(0.1, 0.1, 0.1, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	float cx = g.xres/2.0;
-	float cy = g.yres/2.0;
-	//
-	//show ground
-	glBegin(GL_QUADS);
-		glColor3f(0.2, 0.2, 0.2);
-		glVertex2i(0,       220);
-		glVertex2i(g.xres, 220);
-		glColor3f(0.4, 0.4, 0.4);
-		glVertex2i(g.xres,   0);
-		glVertex2i(0,         0);
-	glEnd();
-	//
-	//fake shadow
-	//glColor3f(0.25, 0.25, 0.25);
-	//glBegin(GL_QUADS);
-	//	glVertex2i(cx-60, 150);
-	//	glVertex2i(cx+50, 150);
-	//	glVertex2i(cx+50, 130);
-	//	glVertex2i(cx-60, 130);
-	//glEnd();
-	//
-	//show boxes as background
-	for (int i=0; i<20; i++) {
-		glPushMatrix();
-		glTranslated(g.box[i][0],g.box[i][1],g.box[i][2]);
-		glColor3f(0.2, 0.2, 0.2);
-		glBegin(GL_QUADS);
-			glVertex2i( 0,  0);
-			glVertex2i( 0, 30);
-			glVertex2i(20, 30);
-			glVertex2i(20,  0);
-		glEnd();
-		glPopMatrix();
-	}
-	float h = 200.0;
-	float w = h * 0.5;
-	glPushMatrix();
-	glColor3f(1.0, 1.0, 1.0);
-	glBindTexture(GL_TEXTURE_2D, g.walkTexture);
-	//
-	glEnable(GL_ALPHA_TEST);
-	glAlphaFunc(GL_GREATER, 0.0f);
-	glColor4ub(255,255,255,255);
-	int ix = g.walkFrame % 8;
-	int iy = 0;
-	if (g.walkFrame >= 8)
-		iy = 1;
-	float tx = (float)ix / 8.0;
-	float ty = (float)iy / 2.0;
-	glBegin(GL_QUADS);
-		glTexCoord2f(tx,      ty+.5); glVertex2i(cx-w, cy-h);
-		glTexCoord2f(tx,      ty);    glVertex2i(cx-w, cy+h);
-		glTexCoord2f(tx+.125, ty);    glVertex2i(cx+w, cy+h);
-		glTexCoord2f(tx+.125, ty+.5); glVertex2i(cx+w, cy-h);
-	glEnd();
-	glPopMatrix();
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glDisable(GL_ALPHA_TEST);
-	//
-	unsigned int c = 0x00ffff44;
-	r.bot = g.yres - 20;
-	r.left = 10;
-	r.center = 0;
-	ggprint8b(&r, 16, c, "The Legend of Indecisiveness");
-	ggprint8b(&r, 16, c, "1 - Medieval Level");
-	ggprint8b(&r, 16, c, "2 - Snow Level");
-	ggprint8b(&r, 16, c, "3 - mlara2 Level");
-	ggprint8b(&r, 16, c, "4 - msteiner Level");
+    //allow 2D texture maps
+    glEnable(GL_TEXTURE_2D);
+    initialize_fonts();
+
+    //background flowers
+    glGenTextures(1, &g.texid);
+    glBindTexture(GL_TEXTURE_2D, g.texid);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, img.width, img.height, 0,
+                            GL_RGB, GL_UNSIGNED_BYTE, img.data);
+
+    //#define CALL_FUNC
+    #ifdef CALL_FUNC
+    unsigned char *data2 = buildAlphaData(&sprite);
+    #else
+    unsigned char *data2 = new unsigned char [sprite.width * sprite.height * 4];
+    for (int i=0; i<sprite.height; i++) {
+        for (int j=0; j<sprite.width; j++) { 
+            int offset  = i*sprite.width*3 + j*3;
+            int offset2 = i*sprite.width*4 + j*4;
+            data2[offset2+0] = sprite.data[offset+0];
+            data2[offset2+1] = sprite.data[offset+1];
+            data2[offset2+2] = sprite.data[offset+2];
+            data2[offset2+3] =
+            ((unsigned char)sprite.data[offset+0] != 255 &&
+             (unsigned char)sprite.data[offset+1] != 255 &&
+             (unsigned char)sprite.data[offset+2] != 255);
+        }
+    }
+    #endif
+    glGenTextures(1, &g.spriteid);
+    glBindTexture(GL_TEXTURE_2D, g.spriteid);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sprite.width, sprite.height, 0,
+                                        GL_RGBA, GL_UNSIGNED_BYTE, data2);
+    delete [] data2;
+    g.bees[0].set_dimensions(g.xres, g.yres);
+}
+
+void physics()
+{
+    ++g.frameno;
+    if (g.frameno > 20)
+        g.frameno = 1;
+    //movement
+    g.bees[0].pos[0] += g.bees[0].vel[0];
+    g.bees[0].pos[1] += g.bees[0].vel[1];
+    //boundry test
+    if (g.bees[0].pos[0] >= g.xres) {
+        g.bees[0].pos[0] = g.xres;
+        g.bees[0].vel[0] = 0.0;
+    }
+    if (g.bees[0].pos[0] <= 0) {
+        g.bees[0].pos[0] = 0;
+        g.bees[0].vel[0] = 0.0;
+    }
+    if (g.bees[0].pos[1] >= g.yres) {
+        g.bees[0].pos[1] = g.yres;
+        g.bees[0].vel[1] = 0.0;
+    }
+    if (g.bees[0].pos[1] <= 0) {
+        g.bees[0].pos[1] = 0;
+        g.bees[0].vel[1] = 0.0;
+    }
+    //move the bee toward the flower...
+    Flt cx = g.xres/2.0;
+    Flt cy = g.yres/2.0;
+    cx = g.xres * (218.0/300.0);
+    cy = g.yres * (86.0/169.0);
+    Flt dx = cx - g.bees[0].pos[0];
+    Flt dy = cy - g.bees[0].pos[1];
+    Flt dist = (dx*dx + dy*dy);
+    if (dist < 0.01)
+        dist = 0.01; //clamp
+    g.bees[0].vel[0] += (dx / dist) * g.gravity;
+    g.bees[0].vel[1] += (dy / dist) * g.gravity;
+    g.bees[0].vel[0] += ((Flt)rand() / (Flt)RAND_MAX) * 0.5 - 0.25;
+    g.bees[0].vel[1] += ((Flt)rand() / (Flt)RAND_MAX) * 0.5 - 0.25;
+}
+
+void render()
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+    Rect r;
+
+    if (g.state == STATE_LEVEL_ONE) {
+       open_level_one(); 
+    }
+
+    if (g.state == STATE_INTRO) {
+        glColor3ub(255, 255, 255);
+        //dark mode
+        //glColor3ub(80, 80, 160);
+        glBindTexture(GL_TEXTURE_2D, g.texid);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0,1); glVertex2i(0,      0);
+            glTexCoord2f(0,0); glVertex2i(0,      g.yres);
+            glTexCoord2f(1,0); glVertex2i(g.xres, g.yres);
+            glTexCoord2f(1,1); glVertex2i(g.xres, 0);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        r.bot = g.yres - 20;
+        r.left = 10;
+        r.center = 0;
+        ggprint8b(&r, 20, 0x00ffffff, "Level 1 - danzaldo");
+        ggprint8b(&r, 20, 0x00ffffff, "Level 2 - mlara2");
+        ggprint8b(&r, 20, 0x00ffffff, "Level 3 - gjimenezroja");
+        ggprint8b(&r, 20, 0x00ffffff, "Level 4 - msteiner");
+        ggprint8b(&r, 20, 0x00ffffff, 
+            "Type corresponding number to select level");
+
+        //Draw bee.
+        glPushMatrix();
+        glColor3ub(255, 255, 255);
+        glTranslatef(g.bees[0].pos[0], g.bees[0].pos[1], 0.0f);
+
+        //set alpha test
+        //https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/
+        //xhtml/glAlphaFunc.xml
+        glEnable(GL_ALPHA_TEST);
+        //transparent if alpha value is greater than 0.0
+        glAlphaFunc(GL_GREATER, 0.0f);
+        //Set 4-channels of color intensity
+        glColor4ub(255,255,255,255);
+        //
+        glBindTexture(GL_TEXTURE_2D, g.spriteid);
+        //make texture coordinates based on frame number.
+        float tx1 = 0.0f + (float)((g.frameno-1) % 5) * 0.2f;
+        float tx2 = tx1 + 0.2f;
+        float ty1 = 0.0f + (float)((g.frameno-1) / 5) * 0.2f;
+        float ty2 = ty1 + 0.2;
+        if (g.bees[0].vel[0] > 0.0) {
+            float tmp = tx1;
+            tx1 = tx2;
+            tx2 = tmp;
+        }
+        glBegin(GL_QUADS);
+            glTexCoord2f(tx1, ty2); glVertex2f(-g.bees[0].w, -g.bees[0].h);
+            glTexCoord2f(tx1, ty1); glVertex2f(-g.bees[0].w,  g.bees[0].h);
+            glTexCoord2f(tx2, ty1); glVertex2f( g.bees[0].w,  g.bees[0].h);
+            glTexCoord2f(tx2, ty2); glVertex2f( g.bees[0].w, -g.bees[0].h);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDisable(GL_ALPHA_TEST);
+        glPopMatrix();
+    }
 }
