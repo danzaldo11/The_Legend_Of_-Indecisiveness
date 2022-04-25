@@ -63,7 +63,7 @@ public:
             unlink(newfile);
     }
 } img("images/start_screen.png"),
-  sprite("images/fairy.png");
+  sprite("images/Navi.png");
 
 struct Vector {
     float x,y,z;
@@ -324,6 +324,15 @@ int X11_wrapper::check_keys(XEvent *e)
 			case XK_1:
 				g.state = STATE_LEVEL_ONE;
 				break;
+            case XK_2:
+                g.state = STATE_LEVEL_TWO;
+                break;
+            case XK_3:
+                g.state = STATE_LEVEL_THREE;
+                break;
+            case XK_4:
+                g.state = STATE_LEVEL_FOUR;
+                break;
 			case XK_Escape:
 				//Escape key was pressed
 				return 1;
@@ -425,7 +434,7 @@ void init_opengl(void)
 void physics()
 {
     ++g.frameno;
-    if (g.frameno > 20)
+    if (g.frameno > 16)
         g.frameno = 1;
     //movement
     g.bees[0].pos[0] += g.bees[0].vel[0];
@@ -472,6 +481,18 @@ void render()
        open_level_one(); 
     }
 
+    if (g.state == STATE_LEVEL_TWO) {
+
+    }
+
+    if (g.state == STATE_LEVEL_THREE) {
+
+    }
+
+    if (g.state == STATE_LEVEL_FOUR) {
+
+    }
+
     if (g.state == STATE_INTRO) {
         glColor3ub(255, 255, 255);
         //dark mode
@@ -510,21 +531,11 @@ void render()
         glColor4ub(255,255,255,255);
         //
         glBindTexture(GL_TEXTURE_2D, g.spriteid);
-        //make texture coordinates based on frame number.
-        float tx1 = 0.0f + (float)((g.frameno-1) % 5) * 0.2f;
-        float tx2 = tx1 + 0.2f;
-        float ty1 = 0.0f + (float)((g.frameno-1) / 5) * 0.2f;
-        float ty2 = ty1 + 0.2;
-        if (g.bees[0].vel[0] > 0.0) {
-            float tmp = tx1;
-            tx1 = tx2;
-            tx2 = tmp;
-        }
         glBegin(GL_QUADS);
-            glTexCoord2f(tx1, ty2); glVertex2f(-g.bees[0].w, -g.bees[0].h);
-            glTexCoord2f(tx1, ty1); glVertex2f(-g.bees[0].w,  g.bees[0].h);
-            glTexCoord2f(tx2, ty1); glVertex2f( g.bees[0].w,  g.bees[0].h);
-            glTexCoord2f(tx2, ty2); glVertex2f( g.bees[0].w, -g.bees[0].h);
+            glTexCoord2f(0, 1); glVertex2f(-g.bees[0].w, -g.bees[0].h);
+            glTexCoord2f(0, 0); glVertex2f(-g.bees[0].w,  g.bees[0].h);
+            glTexCoord2f(1, 0); glVertex2f( g.bees[0].w,  g.bees[0].h);
+            glTexCoord2f(1, 1); glVertex2f( g.bees[0].w, -g.bees[0].h);
         glEnd();
         glBindTexture(GL_TEXTURE_2D, 0);
         glDisable(GL_ALPHA_TEST);
