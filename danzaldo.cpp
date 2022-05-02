@@ -1,26 +1,26 @@
-//3350
-//program: danzaldo.cpp
-//author:  Dylan Anzaldo
-//date:    spring 2022
-//
-//Medieval map and sprite movement
-//images courtesy: https://www.artstation.com/artwork/xJv4WW
-//                 https://www.artstation.com/artwork/PmggkZ 
-//
+// Dylan Anzaldo
+// CSUB - CMPS 3350 - Software Engineering
+// Group project 
+// Spring 2022
+// danzaldo.cpp
+
 #include <iostream>
 #include <fstream>
 using namespace std;
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
-#include <cstdlib>
-#include <ctime>
-#include <cstring>
-#include <cmath>
+#include <time.h>
+#include <math.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
-//for text on the screen
 #include "fonts.h"
+#include "danzaldo.h"
+#include "mlara2.h"
+#include "gjimenezroja.h"
+#include "msteiner.h"
 
 class Image {
 public:
@@ -55,28 +55,37 @@ public:
         if (!isPPM)
             unlink(newfile);
     }
-} background("images/castle.jpg"),
-  knight("images/Link.png");
+} castle("images/castle.jpg"),
+  snow("images/snow_map.png"),
+  beach("images/beach_map.png");
 
 struct Vector {
     float x,y,z;
 };
 
-typedef double Flt;
+enum {
+    STATE_INTRO,
+    STATE_LEVEL_ONE,
+    STATE_LEVEL_TWO,
+    STATE_LEVEL_THREE,
+    STATE_LEVEL_FOUR,
+    STATE_GAME_OVER,
+};
 
-class Knight {
+typedef double Flt;
+//a game object
+class Bat {
 public:
     Flt pos[3];      //vector
     Flt vel[3];      //vector
     float w, h;
     unsigned int color;
-    bool alive_or_dead;
+    bool alive_or_dead;     
     void set_dimensions(int x, int y) {
         w = (float)x * 0.05;
         h = w;
-        y = y;
     }
-    Knight() {
+    Bat() {
         w = h = 4.0;
         pos[0] = 1.0;
         pos[1] = 200.0;
@@ -88,9 +97,12 @@ public:
 class Global {
 public:
     int xres, yres;
-    Knight knight[2];
-    unsigned int texid;
-    unsigned int knightid;
+    Bat bats[2];
+    unsigned int texid_one;
+    unsigned int texid_two;
+    unsigned int texid_three;
+    unsigned int texid_four;
+    unsigned int spriteid;
     //the box components
     float pos[2];
     float w;
@@ -99,7 +111,6 @@ public:
     Flt gravity;
     int frameno;
     int state;
-    int health;
     Global() {
         xres = 400;
         yres = 200;
@@ -111,107 +122,276 @@ public:
         inside = 0;
         gravity = 20.0;
         frameno = 1.0;
-        state = 0;
-        health = 100;
+        state = STATE_INTRO;
     }
 } d;
 
-int danzaldo_gameover(int health) {
-    if (health <= 0) {
-        return 1;
-    } else {
-        return 0;
-    }   
+void init_level_one() {
+    if (d.state == STATE_LEVEL_ONE) {
+        //OpenGL initialization
+        glViewport(0, 0, d.xres, d.yres);
+        //Initialize matrices
+        glMatrixMode(GL_PROJECTION); glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW); glLoadIdentity();
+        //This sets 2D mode (no perspective)
+        glOrtho(0, d.xres, 0, d.yres, -1, 1);
+        //
+        //glDisable(GL_LIGHTING);
+        //glDisable(GL_DEPTH_TEST);
+        //glDisable(GL_FOG);
+        //glDisable(GL_CULL_FACE);
+        //
+        //Clear the screen
+        glClearColor(1.0, 1.0, 1.0, 1.0);
+        //glClear(GL_COLOR_BUFFER_BIT);
+        //Do this to allow fonts
+        glEnable(GL_TEXTURE_2D);
+        initialize_fonts();
+
+        //background castle
+        glGenTextures(1, &d.texid_one);
+        glBindTexture(GL_TEXTURE_2D, d.texid_one);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, 3, castle.width, castle.height, 0,
+                                  GL_RGB, GL_UNSIGNED_BYTE, castle.data);
+    }
 }
 
-void open_level_one() {
-    glClear(GL_COLOR_BUFFER_BIT);
+void init_level_two() {
+    if (d.state == STATE_LEVEL_TWO) {
+        //OpenGL initialization
+        glViewport(0, 0, d.xres, d.yres);
+        //Initialize matrices
+        glMatrixMode(GL_PROJECTION); glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW); glLoadIdentity();
+        //This sets 2D mode (no perspective)
+        glOrtho(0, d.xres, 0, d.yres, -1, 1);
+        //
+        //glDisable(GL_LIGHTING);
+        //glDisable(GL_DEPTH_TEST);
+        //glDisable(GL_FOG);
+        //glDisable(GL_CULL_FACE);
+        //
+        //Clear the screen
+        glClearColor(1.0, 1.0, 1.0, 1.0);
+        //glClear(GL_COLOR_BUFFER_BIT);
+        //Do this to allow fonts
+        glEnable(GL_TEXTURE_2D);
+        initialize_fonts();
+
+        //background beach
+        glGenTextures(1, &d.texid_two);
+        glBindTexture(GL_TEXTURE_2D, d.texid_two);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, 3, beach.width, beach.height, 0,
+                                  GL_RGB, GL_UNSIGNED_BYTE, beach.data);
+    }
+}
+
+void init_level_three() {
+    if (d.state == STATE_LEVEL_THREE) {
+        //OpenGL initialization
+        glViewport(0, 0, d.xres, d.yres);
+        //Initialize matrices
+        glMatrixMode(GL_PROJECTION); glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW); glLoadIdentity();
+        //This sets 2D mode (no perspective)
+        glOrtho(0, d.xres, 0, d.yres, -1, 1);
+        //
+        //glDisable(GL_LIGHTING);
+        //glDisable(GL_DEPTH_TEST);
+        //glDisable(GL_FOG);
+        //glDisable(GL_CULL_FACE);
+        //
+        //Clear the screen
+        glClearColor(1.0, 1.0, 1.0, 1.0);
+        //glClear(GL_COLOR_BUFFER_BIT);
+        //Do this to allow fonts
+        glEnable(GL_TEXTURE_2D);
+        initialize_fonts();
+
+        //background snow
+        glGenTextures(1, &d.texid_three);
+        glBindTexture(GL_TEXTURE_2D, d.texid_three);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, 3, snow.width, snow.height, 0,
+                                  GL_RGB, GL_UNSIGNED_BYTE, snow.data);
+    }
+}
+
+void init_level_four() {
+    if (d.state == STATE_LEVEL_FOUR) {
+        //OpenGL initialization
+        glViewport(0, 0, d.xres, d.yres);
+        //Initialize matrices
+        glMatrixMode(GL_PROJECTION); glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW); glLoadIdentity();
+        //This sets 2D mode (no perspective)
+        glOrtho(0, d.xres, 0, d.yres, -1, 1);
+        //
+        //glDisable(GL_LIGHTING);
+        //glDisable(GL_DEPTH_TEST);
+        //glDisable(GL_FOG);
+        //glDisable(GL_CULL_FACE);
+        //
+        //Clear the screen
+        glClearColor(1.0, 1.0, 1.0, 1.0);
+        //glClear(GL_COLOR_BUFFER_BIT);
+        //Do this to allow fonts
+        glEnable(GL_TEXTURE_2D);
+        initialize_fonts();
+
+        //background castle
+        glGenTextures(1, &d.texid_four);
+        glBindTexture(GL_TEXTURE_2D, d.texid_four);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, 3, castle.width, castle.height, 0,
+                                  GL_RGB, GL_UNSIGNED_BYTE, castle.data);
+    }
+}
+
+void level_select_screen() {
     Rect r;
 
-    //OpenGL initialization
-    glViewport(0, 0, d.xres, d.yres);
-    //Initialize matrices
-    glMatrixMode(GL_PROJECTION); glLoadIdentity();
-    //Set 2D mode (no perspective)
-    glOrtho(0, d.xres, 0, d.yres, -1, 1);
-    //
-    glMatrixMode(GL_MODELVIEW); glLoadIdentity();
-    //Set the screen background color
-    glClearColor(0.1, 0.1, 0.1, 1.0);
-    //allow 2D texture maps
-    glEnable(GL_TEXTURE_2D);
-    initialize_fonts();
-
-    //background 
-    glGenTextures(1, &d.texid);
-    glBindTexture(GL_TEXTURE_2D, d.texid);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, background.width, background.height, 
-            0, GL_RGB, GL_UNSIGNED_BYTE, background.data);
-
-    unsigned char *data2 = new unsigned char 
-        [knight.width * knight.height * 4];
-    for (int i=0; i<knight.height; i++) {
-        for (int j=0; j<knight.width; j++) {
-            int offset  = i*knight.width*3 + j*3;
-            int offset2 = i*knight.width*4 + j*4;
-            data2[offset2+0] = knight.data[offset+0];
-            data2[offset2+1] = knight.data[offset+1];
-            data2[offset2+2] = knight.data[offset+2];
-            data2[offset2+3] =
-            ((unsigned char)knight.data[offset+0] != 255 &&
-             (unsigned char)knight.data[offset+1] != 255 &&
-             (unsigned char)knight.data[offset+2] != 255);
-        }
-    }
-    glGenTextures(1, &d.knightid);
-    glBindTexture(GL_TEXTURE_2D, d.knightid);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, knight.width, knight.height, 0,
-                                        GL_RGBA, GL_UNSIGNED_BYTE, data2);
-    delete [] data2;
-
-    glColor3ub(255, 255, 255);
-    //dark mode
-    //glColor3ub(80, 80, 160);
-    glBindTexture(GL_TEXTURE_2D, d.texid);
-    glBegin(GL_QUADS);
-        glTexCoord2f(0,1); glVertex2i(0,      0);
-        glTexCoord2f(0,0); glVertex2i(0,      d.yres);
-        glTexCoord2f(1,0); glVertex2i(d.xres, d.yres);
-        glTexCoord2f(1,1); glVertex2i(d.xres, 0);
-    glEnd();
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    r.bot = d.yres - 20;
+    unsigned int c = 0x00ffff44;
+    r.bot = 65;
     r.left = 10;
     r.center = 0;
-    ggprint8b(&r, 0, 0x00ffffff, "Dylan's Level");
+    ggprint8b(&r, 16, c, "1 - danzaldo level");
+    ggprint8b(&r, 16, c, "2 - mlara2 level");
+    ggprint8b(&r, 16, c, "3 - gjimenezroja level");
+    ggprint8b(&r, 16, c, "4 - msteiner level");
+    ggprint8b(&r, 16, c, "To select level type the corresponding number");
+}
 
-    //Draw knight.
-    glPushMatrix();
-    glColor3ub(255, 255, 255);
-    glTranslatef(d.knight[0].pos[0], d.knight[0].pos[1], 0.0f);
-    //set alpha test
-    //https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/
-    //xhtml/glAlphaFunc.xml
-    glEnable(GL_ALPHA_TEST);
-    //transparent if alpha value is greater than 0.0
-    glAlphaFunc(GL_GREATER, 0.0f);
-    //Set 4-channels of color intensity
-    glColor4ub(255,255,255,255);
-    //
-    glBindTexture(GL_TEXTURE_2D, d.knightid);
+void select_level_one() {
+    d.state = STATE_LEVEL_ONE;
+}
 
-    glBegin(GL_QUADS);
-        glTexCoord2f(0, 1); glVertex2f(-d.knight[0].w, -d.knight[0].h);
-        glTexCoord2f(0, 0); glVertex2f(-d.knight[0].w,  d.knight[0].h);
-        glTexCoord2f(1, 0); glVertex2f( d.knight[0].w,  d.knight[0].h);
-        glTexCoord2f(1, 1); glVertex2f( d.knight[0].w, -d.knight[0].h);
-    glEnd();
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_ALPHA_TEST);
-    glPopMatrix();
+void select_level_two() {
+    d.state = STATE_LEVEL_TWO;
+}
+
+void select_level_three() {
+    d.state = STATE_LEVEL_THREE;
+}
+
+void select_level_four() {
+    d.state = STATE_LEVEL_FOUR;
+}
+
+void select_start_screen() {
+    d.state = STATE_INTRO;
+}
+
+void load_level_one() {
+    if (d.state == STATE_LEVEL_ONE) {   
+        glClear(GL_COLOR_BUFFER_BIT);     
+        glColor3ub(255, 255, 255);
+        //dark mode
+        //glColor3ub(80, 80, 160);
+        glBindTexture(GL_TEXTURE_2D, d.texid_one);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0,1); glVertex2i(0,      0);
+            glTexCoord2f(0,0); glVertex2i(0,      d.yres);
+            glTexCoord2f(1,0); glVertex2i(d.xres, d.yres);
+            glTexCoord2f(1,1); glVertex2i(d.xres, 0);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        Rect r;
+        unsigned int c = 0x00ffff44;
+        r.bot = d.yres - 20;
+        r.left = 10;
+        r.center = 0;
+        ggprint8b(&r, 16, c, "Dylan's Level");
+        r.bot = 65;
+        ggprint8b(&r, 16, c, "0 - Level Select");
+        ggprint8b(&r, 16, c, "To select level type the corresponding number");
+    }
+}
+
+void load_level_two() {
+    if (d.state == STATE_LEVEL_TWO) {
+        glClear(GL_COLOR_BUFFER_BIT);
+        glColor3ub(255, 255, 255);
+        //dark mode
+        //glColor3ub(80, 80, 160);
+        glBindTexture(GL_TEXTURE_2D, d.texid_two);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0,1); glVertex2i(0,      0);
+            glTexCoord2f(0,0); glVertex2i(0,      d.yres);
+            glTexCoord2f(1,0); glVertex2i(d.xres, d.yres);
+            glTexCoord2f(1,1); glVertex2i(d.xres, 0);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        Rect r;
+        unsigned int c = 0x00ffff44;
+        r.bot = d.yres - 20;
+        r.left = 10;
+        r.center = 0;
+        ggprint8b(&r, 16, c, "Mlara2's Level");
+        r.bot = 65;
+        ggprint8b(&r, 16, c, "0 - Level Select");
+        ggprint8b(&r, 16, c, "To select level type the corresponding number");
+    }
+}
+
+void load_level_three() {
+    if (d.state == STATE_LEVEL_THREE) {
+        glClear(GL_COLOR_BUFFER_BIT);
+        glColor3ub(255, 255, 255);
+        //dark mode
+        //glColor3ub(80, 80, 160);
+        glBindTexture(GL_TEXTURE_2D, d.texid_three);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0,1); glVertex2i(0,      0);
+            glTexCoord2f(0,0); glVertex2i(0,      d.yres);
+            glTexCoord2f(1,0); glVertex2i(d.xres, d.yres);
+            glTexCoord2f(1,1); glVertex2i(d.xres, 0);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        Rect r;
+        unsigned int c = 0x00ffff44;
+        r.bot = d.yres - 20;
+        r.left = 10;
+        r.center = 0;
+        ggprint8b(&r, 16, c, "gjimenezroja's Level");
+        r.bot = 65;
+        ggprint8b(&r, 16, c, "0 - Level Select");
+        ggprint8b(&r, 16, c, "To select level type the corresponding number");
+    }
+}
+
+void load_level_four() {
+     if (d.state == STATE_LEVEL_FOUR) {
+        glClear(GL_COLOR_BUFFER_BIT);
+        glColor3ub(255, 255, 255);
+        //dark mode
+        //glColor3ub(80, 80, 160);
+        glBindTexture(GL_TEXTURE_2D, d.texid_four);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0,1); glVertex2i(0,      0);
+            glTexCoord2f(0,0); glVertex2i(0,      d.yres);
+            glTexCoord2f(1,0); glVertex2i(d.xres, d.yres);
+            glTexCoord2f(1,1); glVertex2i(d.xres, 0);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        Rect r;
+        unsigned int c = 0x00ffff44;
+        r.bot = d.yres - 20;
+        r.left = 10;
+        r.center = 0;
+        ggprint8b(&r, 16, c, "Msteiner's Level");
+        r.bot = 65;
+        ggprint8b(&r, 16, c, "0 - Level Select");
+        ggprint8b(&r, 16, c, "To select level type the corresponding number");
+    }
 }
