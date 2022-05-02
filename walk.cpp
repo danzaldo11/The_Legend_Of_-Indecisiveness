@@ -6,6 +6,9 @@
 //Walk cycle using a sprite sheet.
 //images courtesy: http://games.ucla.edu/resource/walk-cycles/
 //
+#include <iostream>
+#include <fstream>
+using namespace std;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,50 +46,38 @@ const float gravity = -0.2f;
 
 class Image {
 public:
-	int width, height;
-	unsigned char *data;
-	~Image() { delete [] data; }
-	Image(const char *fname) {
-		if (fname[0] == '\0')
-			return;
-		//printf("fname **%s**\n", fname);
-		char name[40];
-		strcpy(name, fname);
-		int slen = strlen(name);
-		name[slen-4] = '\0';
-		//printf("name **%s**\n", name);
-		char ppmname[80];
-		sprintf(ppmname,"%s.ppm", name);
-		//printf("ppmname **%s**\n", ppmname);
-		char ts[100];
-		//system("convert eball.jpg eball.ppm");
-		sprintf(ts, "convert %s %s", fname, ppmname);
-		system(ts);
-		//sprintf(ts, "%s", name);
-		FILE *fpi = fopen(ppmname, "r");
-		if (fpi) {
-			char line[200];
-			fgets(line, 200, fpi);
-			fgets(line, 200, fpi);
-			while (line[0] == '#')
-				fgets(line, 200, fpi);
-			sscanf(line, "%i %i", &width, &height);
-			fgets(line, 200, fpi);
-			//get pixel data
-			int n = width * height * 3;			
-			data = new unsigned char[n];			
-			for (int i=0; i<n; i++)
-				data[i] = fgetc(fpi);
-			fclose(fpi);
-		} else {
-			printf("ERROR opening image: %s\n",ppmname);
-			exit(0);
-		}
-		unlink(ppmname);
-	}
-};
-Image img[1] = {"images/walk.gif"};
-
+    int width, height, max;
+    char *data;
+    Image() { }
+    Image(const char *fname) {
+        bool isPPM = true;
+        char str[1200];
+        char newfile[200];
+        ifstream fin;
+        char *p = strstr((char *)fname, ".ppm");
+        if (!p) {
+            //not a ppm file
+            isPPM = false;
+            strcpy(newfile, fname);
+            newfile[strlen(newfile)+4] = '\0';
+            strcat(newfile, ".ppm");
+            sprintf(str, "convert %s %s", fname, newfile);
+            system(str);
+            fin.open(newfile);
+        } else {
+            fin.open(fname);
+        }
+        char p6[10];
+        fin >> p6;
+        fin >> width >> height;
+        fin >> max;
+        data = new char [width * height * 3];
+        fin.read(data, width * height * 3);
+        fin.close();
+        if (!isPPM)
+            unlink(newfile);
+    }
+} img("images/start_screen.png");
 
 //-----------------------------------------------------------------------------
 //Setup timers
@@ -115,25 +106,11 @@ public:
 
 class Global {
 public:
-	int done;
 	int xres, yres;
-	int walk;
-	int walkFrame;
-	double delay;
-	GLuint walkTexture;
-	Vec box[20];
+    unsigned int texid;
 	Global() {
-		done=0;
-		xres=800;
-		yres=600;
-		walk=0;
-		walkFrame=0;
-		delay = 0.1;
-		for (int i=0; i<20; i++) {
-			box[i][0] = rnd() * xres;
-			box[i][1] = rnd() * (yres-220) + 220.0;
-			box[i][2] = 0.0;
-		}
+		xres = 400;
+        yres = 200;
 	}
 } g;
 
@@ -275,51 +252,34 @@ unsigned char *buildAlphaData(Image *img)
 	return newdata;
 }
 
-void initOpengl(void)
-{
-	//OpenGL initialization
-	glViewport(0, 0, g.xres, g.yres);
-	//Initialize matrices
-	glMatrixMode(GL_PROJECTION); glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW); glLoadIdentity();
-	//This sets 2D mode (no perspective)
-	glOrtho(0, g.xres, 0, g.yres, -1, 1);
-	//
-	glDisable(GL_LIGHTING);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_FOG);
-	glDisable(GL_CULL_FACE);
-	//
-	//Clear the screen
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	//glClear(GL_COLOR_BUFFER_BIT);
-	//Do this to allow fonts
-	glEnable(GL_TEXTURE_2D);
-	initialize_fonts();
-	//
-	//load the images file into a ppm structure.
-	//
-	int w = img[0].width;
-	int h = img[0].height;
-	//
-	//create opengl texture elements
-	glGenTextures(1, &g.walkTexture);
-	//-------------------------------------------------------------------------
-	//silhouette
-	//this is similar to a sprite graphic
-	//
-	glBindTexture(GL_TEXTURE_2D, g.walkTexture);
-	//
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	//
-	//must build a new set of data...
-	unsigned char *walkData = buildAlphaData(&img[0]);	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-		GL_RGBA, GL_UNSIGNED_BYTE, walkData);
-	//free(walkData);
-	//unlink("./images/walk.ppm");
-	//-------------------------------------------------------------------------
+void initOpengl(void) {
+    //OpenGL initialization
+    glViewport(0, 0, g.xres, g.yres);
+    //Initialize matrices
+    glMatrixMode(GL_PROJECTION); glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW); glLoadIdentity();
+    //This sets 2D mode (no perspective)
+    glOrtho(0, g.xres, 0, g.yres, -1, 1);
+    //
+    //glDisable(GL_LIGHTING);
+    //glDisable(GL_DEPTH_TEST);
+    //glDisable(GL_FOG);
+    //glDisable(GL_CULL_FACE);
+    //
+    //Clear the screen
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    //glClear(GL_COLOR_BUFFER_BIT);
+    //Do this to allow fonts
+    glEnable(GL_TEXTURE_2D);
+    initialize_fonts();
+
+    //background 
+    glGenTextures(1, &g.texid);
+    glBindTexture(GL_TEXTURE_2D, g.texid);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, img.width, img.height, 0,
+                              GL_RGB, GL_UNSIGNED_BYTE, img.data);
 }
 
 void init() {
@@ -372,26 +332,6 @@ int checkKeys(XEvent *e)
 	}
 	(void)shift;
 	switch (key) {
-		case XK_w:
-			timers.recordTime(&timers.walkTime);
-			g.walk ^= 1;
-			break;
-		case XK_Left:
-			break;
-		case XK_Right:
-			break;
-		case XK_Up:
-			break;
-		case XK_Down:
-			break;
-		case XK_equal:
-			g.delay -= 0.005;
-			if (g.delay < 0.005)
-				g.delay = 0.005;
-			break;
-		case XK_minus:
-			g.delay += 0.005;
-			break;
         case XK_0:
             select_start_screen();
             break;
@@ -435,102 +375,22 @@ Flt VecNormalize(Vec vec)
 
 void physics(void)
 {
-	if (g.walk) {
-		//man is walking...
-		//when time is up, advance the frame.
-		timers.recordTime(&timers.timeCurrent);
-		double timeSpan = timers.timeDiff(&timers.walkTime, &timers.timeCurrent);
-		if (timeSpan > g.delay) {
-			//advance
-			++g.walkFrame;
-			if (g.walkFrame >= 16)
-				g.walkFrame -= 16;
-			timers.recordTime(&timers.walkTime);
-		}
-		for (int i=0; i<20; i++) {
-			g.box[i][0] -= 2.0 * (0.05 / g.delay);
-			if (g.box[i][0] < -10.0)
-				g.box[i][0] += g.xres + 10.0;
-		}
-	}
+
 }
 
-void render(void)
-{
-	Rect r;
-	//Clear the screen
-	glClearColor(0.1, 0.1, 0.1, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	float cx = g.xres/2.0;
-	float cy = g.yres/2.0;
-	//
-	//show ground
-	glBegin(GL_QUADS);
-		glColor3f(0.2, 0.2, 0.2);
-		glVertex2i(0,       220);
-		glVertex2i(g.xres, 220);
-		glColor3f(0.4, 0.4, 0.4);
-		glVertex2i(g.xres,   0);
-		glVertex2i(0,         0);
-	glEnd();
-	//
-	//fake shadow
-	//glColor3f(0.25, 0.25, 0.25);
-	//glBegin(GL_QUADS);
-	//	glVertex2i(cx-60, 150);
-	//	glVertex2i(cx+50, 150);
-	//	glVertex2i(cx+50, 130);
-	//	glVertex2i(cx-60, 130);
-	//glEnd();
-	//
-	//show boxes as background
-	for (int i=0; i<20; i++) {
-		glPushMatrix();
-		glTranslated(g.box[i][0],g.box[i][1],g.box[i][2]);
-		glColor3f(0.2, 0.2, 0.2);
-		glBegin(GL_QUADS);
-			glVertex2i( 0,  0);
-			glVertex2i( 0, 30);
-			glVertex2i(20, 30);
-			glVertex2i(20,  0);
-		glEnd();
-		glPopMatrix();
-	}
-	float h = 200.0;
-	float w = h * 0.5;
-	glPushMatrix();
-	glColor3f(1.0, 1.0, 1.0);
-	glBindTexture(GL_TEXTURE_2D, g.walkTexture);
-	//
-	glEnable(GL_ALPHA_TEST);
-	glAlphaFunc(GL_GREATER, 0.0f);
-	glColor4ub(255,255,255,255);
-	int ix = g.walkFrame % 8;
-	int iy = 0;
-	if (g.walkFrame >= 8)
-		iy = 1;
-	float tx = (float)ix / 8.0;
-	float ty = (float)iy / 2.0;
-	glBegin(GL_QUADS);
-		glTexCoord2f(tx,      ty+.5); glVertex2i(cx-w, cy-h);
-		glTexCoord2f(tx,      ty);    glVertex2i(cx-w, cy+h);
-		glTexCoord2f(tx+.125, ty);    glVertex2i(cx+w, cy+h);
-		glTexCoord2f(tx+.125, ty+.5); glVertex2i(cx+w, cy-h);
-	glEnd();
-	glPopMatrix();
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glDisable(GL_ALPHA_TEST);
-	//
-	unsigned int c = 0x00ffff44;
-	r.bot = g.yres - 20;
-	r.left = 10;
-	r.center = 0;
-	ggprint8b(&r, 16, c, "W   Walk cycle");
-	ggprint8b(&r, 16, c, "+   faster");
-	ggprint8b(&r, 16, c, "-   slower");
-	ggprint8b(&r, 16, c, "right arrow -> walk right");
-	ggprint8b(&r, 16, c, "left arrow  <- walk left");
-	ggprint8b(&r, 16, c, "frame: %i", g.walkFrame);
+void render(void) {
+    glClear(GL_COLOR_BUFFER_BIT);     
+    glColor3ub(255, 255, 255);
+    //dark mode
+    //glColor3ub(80, 80, 160);
+    glBindTexture(GL_TEXTURE_2D, g.texid);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0,1); glVertex2i(0,      0);
+        glTexCoord2f(0,0); glVertex2i(0,      g.yres);
+        glTexCoord2f(1,0); glVertex2i(g.xres, g.yres);
+        glTexCoord2f(1,1); glVertex2i(g.xres, 0);
+    glEnd();
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     level_select_screen();
     load_level_one();
