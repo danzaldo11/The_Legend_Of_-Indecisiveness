@@ -393,8 +393,8 @@ void render(void) {
     glBindTexture(GL_TEXTURE_2D, 0);
 
     level_select_screen();
-    load_level_one();
-    load_level_two();
-    load_level_three();
-    load_level_four();
+    render_level_one();
+    render_level_two();
+    render_level_three();
+    render_level_four();
 }

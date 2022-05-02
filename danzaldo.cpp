@@ -55,7 +55,7 @@ public:
         if (!isPPM)
             unlink(newfile);
     }
-} castle("images/castle.jpg"),
+} castle("images/castle.png"),
   snow("images/snow_map.png"),
   beach("images/beach_map.png");
 
@@ -125,6 +125,8 @@ public:
         state = STATE_INTRO;
     }
 } d;
+
+
 
 void init_level_one() {
     //OpenGL initialization
@@ -280,7 +282,7 @@ void select_start_screen() {
     d.state = STATE_INTRO;
 }
 
-void load_level_one() {
+void render_level_one() {
     if (d.state == STATE_LEVEL_ONE) {  
         glClear(GL_COLOR_BUFFER_BIT);       
         glColor3ub(255, 255, 255);
@@ -307,7 +309,7 @@ void load_level_one() {
        }
 }
 
-void load_level_two() {
+void render_level_two() {
     if (d.state == STATE_LEVEL_TWO) {
         glClear(GL_COLOR_BUFFER_BIT);
         glColor3ub(255, 255, 255);
@@ -334,7 +336,7 @@ void load_level_two() {
     }
 }
 
-void load_level_three() {
+void render_level_three() {
     if (d.state == STATE_LEVEL_THREE) {
         glClear(GL_COLOR_BUFFER_BIT);
         glColor3ub(255, 255, 255);
@@ -361,7 +363,7 @@ void load_level_three() {
     }
 }
 
-void load_level_four() {
+void render_level_four() {
      if (d.state == STATE_LEVEL_FOUR) {
         glClear(GL_COLOR_BUFFER_BIT);
         glColor3ub(255, 255, 255);
