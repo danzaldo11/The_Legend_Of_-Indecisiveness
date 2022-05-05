@@ -321,7 +321,7 @@ void physics_level_four() {
         s.sprite_four[0].pos[1] = 0;
         s.sprite_four[0].vel[1] = 0.0;
     }
-    //move the bee toward the flower...
+    
     Flt cx = s.xres/2.0;
     Flt cy = s.yres/2.0;
     cx = s.xres * (218.0/300.0);
@@ -347,8 +347,8 @@ void render_level_four() {
         glBegin(GL_QUADS);
             glTexCoord2f(0,1); glVertex2i(0,      0);
             glTexCoord2f(0,0); glVertex2i(0,      s.yres);
-            glTexCoord2f(1,0); glVertex2i(d.xres, s.yres);
-            glTexCoord2f(1,1); glVertex2i(d.xres, 0);
+            glTexCoord2f(1,0); glVertex2i(s.xres, s.yres);
+            glTexCoord2f(1,1); glVertex2i(s.xres, 0);
         glEnd();
         glBindTexture(GL_TEXTURE_2D, 0);
 
