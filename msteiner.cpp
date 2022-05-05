@@ -126,16 +126,16 @@ public:
         frameno = 1.0;
         state = STATE_INTRO;
     }
-} w;
+} n;
 
 void init_start_screens() {
     //OpenGL initialization
-    glViewport(0, 0, w.xres, w.yres);
+    glViewport(0, 0, n.xres, n.yres);
     //Initialize matrices
     glMatrixMode(GL_PROJECTION); glLoadIdentity();
     glMatrixMode(GL_MODELVIEW); glLoadIdentity();
     //This sets 2D mode (no perspective)
-    glOrtho(0, w.xres, 0, w.yres, -1, 1);
+    glOrtho(0, n.xres, 0, n.yres, -1, 1);
     //
     //glDisable(GL_LIGHTING);
     //glDisable(GL_DEPTH_TEST);
@@ -150,8 +150,8 @@ void init_start_screens() {
     initialize_fonts();
 
     //background 
-    glGenTextures(1, &w.texid_start);
-    glBindTexture(GL_TEXTURE_2D, w.texid_start);
+    glGenTextures(1, &n.texid_start);
+    glBindTexture(GL_TEXTURE_2D, n.texid_start);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, 3, start_screen.width, start_screen.height, 0,
@@ -173,17 +173,17 @@ void level_select_screens() {
 }
 
 void render_start_screens() {
-    if (w.state == STATE_INTRO) {
+    if (n.state == STATE_INTRO) {
         glClear(GL_COLOR_BUFFER_BIT);     
         glColor3ub(255, 255, 255);
         //dark mode
         //glColor3ub(80, 80, 160);
-        glBindTexture(GL_TEXTURE_2D, w.texid_start);
+        glBindTexture(GL_TEXTURE_2D, n.texid_start);
         glBegin(GL_QUADS);
             glTexCoord2f(0,1); glVertex2i(0,      0);
-            glTexCoord2f(0,0); glVertex2i(0,      w.yres);
-            glTexCoord2f(1,0); glVertex2i(w.xres, w.yres);
-            glTexCoord2f(1,1); glVertex2i(w.xres, 0);
+            glTexCoord2f(0,0); glVertex2i(0,      n.yres);
+            glTexCoord2f(1,0); glVertex2i(n.xres, n.yres);
+            glTexCoord2f(1,1); glVertex2i(n.xres, 0);
         glEnd();
         glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -193,12 +193,12 @@ void render_start_screens() {
 
 void init_level_four() {
     //OpenGL initialization
-    glViewport(0, 0, w.xres, w.yres);
+    glViewport(0, 0, n.xres, n.yres);
     //Initialize matrices
     glMatrixMode(GL_PROJECTION); glLoadIdentity();
     glMatrixMode(GL_MODELVIEW); glLoadIdentity();
     //This sets 2D mode (no perspective)
-    glOrtho(0, w.xres, 0, w.yres, -1, 1);
+    glOrtho(0, n.xres, 0, n.yres, -1, 1);
     //
     //glDisable(GL_LIGHTING);
     //glDisable(GL_DEPTH_TEST);
@@ -213,8 +213,8 @@ void init_level_four() {
     initialize_fonts();
 
     //background forest
-    glGenTextures(1, &w.texid_four);
-    glBindTexture(GL_TEXTURE_2D, w.texid_four);
+    glGenTextures(1, &n.texid_four);
+    glBindTexture(GL_TEXTURE_2D, n.texid_four);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, 3, forest.width, forest.height, 0,
@@ -241,15 +241,15 @@ void init_level_four() {
 }
     }
     //sprite link
-    glGenTextures(1, &w.spriteid_four);
-    glBindTexture(GL_TEXTURE_2D, w.spriteid_four);
+    glGenTextures(1, &n.spriteid_four);
+    glBindTexture(GL_TEXTURE_2D, n.spriteid_four);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, fiend.width, fiend.height, 0,
                                    GL_RGBA, GL_UNSIGNED_BYTE, data1
                             );
     delete [] data1;
-    s.sprite_level4[0].set_dimensions(w.xres, w.yres);
+    n.sprite_level4[0].set_dimensions(n.xres, n.yres);
 
     unsigned char *data2 = new unsigned char 
         [druid.width * druid.height * 4];
@@ -267,95 +267,95 @@ void init_level_four() {
         }
     }
     //sprite char
-    glGenTextures(1, &w.spriteid_level4);
-    glBindTexture(GL_TEXTURE_2D, w.spriteid_level4);
+    glGenTextures(1, &n.spriteid_level4);
+    glBindTexture(GL_TEXTURE_2D, n.spriteid_level4);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, druid.width, druid.height, 0,
                                    GL_RGBA, GL_UNSIGNED_BYTE, data2);
     delete [] data2;
-    w.sprite_level4[0].set_dimensions(w.xres, w.yres);
+    n.sprite_level4[0].set_dimensions(n.xres, n.yres);
 
 }
 
 void select_level_four() {
-    w.state = STATE_LEVEL_FOUR;
+    n.state = STATE_LEVEL_FOUR;
 }
 
 void ssprite_move_right() {
-    w.sprite_four[0].pos[0] += 1;
+    n.sprite_four[0].pos[0] += 1;
 }
 
 void ssprite_move_left() {
-    w.sprite_four[0].pos[0] -= 1;
+    n.sprite_four[0].pos[0] -= 1;
 }
 
 void ssprite_move_up() {
-    w.sprite_four[0].pos[1] += 1;
+    n.sprite_four[0].pos[1] += 1;
 }
 
 void ssprite_move_down() {
-    w.sprite_four[0].pos[1] -= 1;
+    n.sprite_four[0].pos[1] -= 1;
 }
 void physics_level_four() {
-    ++w.frameno;
-    if (w.frameno > 20)
-        w.frameno = 1;
+    ++n.frameno;
+    if (n.frameno > 20)
+        n.frameno = 1;
     //movement
-    w.sprite_four[0].pos[0] += w.sprite_four[0].vel[0];
-    w.sprite_four[0].pos[1] += w.sprite_four[0].vel[1];
+    n.sprite_four[0].pos[0] += n.sprite_four[0].vel[0];
+    n.sprite_four[0].pos[1] += n.sprite_four[0].vel[1];
     //boundry test
-    if (w.sprite_four[0].pos[0] >= w.xres) {
-        w.sprite_four[0].pos[0] = w.xres;
-        w.sprite_four[0].vel[0] = 0.0;
+    if (n.sprite_four[0].pos[0] >= n.xres) {
+        n.sprite_four[0].pos[0] = n.xres;
+        n.sprite_four[0].vel[0] = 0.0;
     }
-    if (w.sprite_four[0].pos[0] <= 0) {
-        w.sprite_four[0].pos[0] = 0;
-        w.sprite_four[0].vel[0] = 0.0;
+    if (n.sprite_four[0].pos[0] <= 0) {
+        n.sprite_four[0].pos[0] = 0;
+        n.sprite_four[0].vel[0] = 0.0;
     }
-    if (w.sprite_four[0].pos[1] >= w.yres) {
-        w.sprite_four[0].pos[1] = w.yres;
-        w.sprite_four[0].vel[1] = 0.0;
+    if (n.sprite_four[0].pos[1] >= n.yres) {
+        n.sprite_four[0].pos[1] = n.yres;
+        n.sprite_four[0].vel[1] = 0.0;
     }
-    if (w.sprite_four[0].pos[1] <= 0) {
-        w.sprite_four[0].pos[1] = 0;
-        w.sprite_four[0].vel[1] = 0.0;
+    if (n.sprite_four[0].pos[1] <= 0) {
+        n.sprite_four[0].pos[1] = 0;
+        n.sprite_four[0].vel[1] = 0.0;
     }
     
-    Flt cx = w.xres/2.0;
-    Flt cy = w.yres/2.0;
-    cx = w.xres * (218.0/300.0);
-    cy = w.yres * (86.0/169.0);
-    Flt dx = cx - w.sprite_four[0].pos[0];
-    Flt dy = cy - w.sprite_four[0].pos[1];
+    Flt cx = n.xres/2.0;
+    Flt cy = n.yres/2.0;
+    cx = n.xres * (218.0/300.0);
+    cy = n.yres * (86.0/169.0);
+    Flt dx = cx - n.sprite_four[0].pos[0];
+    Flt dy = cy - n.sprite_four[0].pos[1];
     Flt dist = (dx*dx + dy*dy);
     if (dist < 0.01)
         dist = 0.01; //clamp
-    w.sprite_four[0].vel[0] += (dx / dist) * w.gravity;
-    w.sprite_four[0].vel[1] += (dy / dist) * w.gravity;
-    w.sprite_four[0].vel[0] += ((Flt)rand() / (Flt)RAND_MAX) * 0.5 - 0.25;
-    w.sprite_four[0].vel[1] += ((Flt)rand() / (Flt)RAND_MAX) * 0.5 - 0.25;
+    n.sprite_four[0].vel[0] += (dx / dist) * n.gravity;
+    n.sprite_four[0].vel[1] += (dy / dist) * n.gravity;
+    n.sprite_four[0].vel[0] += ((Flt)rand() / (Flt)RAND_MAX) * 0.5 - 0.25;
+    n.sprite_four[0].vel[1] += ((Flt)rand() / (Flt)RAND_MAX) * 0.5 - 0.25;
 }
 
 void render_level_four() {
-     if (w.state == STATE_LEVEL_FOUR) {
+     if (n.state == STATE_LEVEL_FOUR) {
         glClear(GL_COLOR_BUFFER_BIT);
         glColor3ub(255, 255, 255);
         //dark mode
         //glColor3ub(80, 80, 160);
-        glBindTexture(GL_TEXTURE_2D, w.texid_four);
+        glBindTexture(GL_TEXTURE_2D, n.texid_four);
         glBegin(GL_QUADS);
             glTexCoord2f(0,1); glVertex2i(0,      0);
-            glTexCoord2f(0,0); glVertex2i(0,      w.yres);
-            glTexCoord2f(1,0); glVertex2i(w.xres, w.yres);
-            glTexCoord2f(1,1); glVertex2i(w.xres, 0);
+            glTexCoord2f(0,0); glVertex2i(0,      n.yres);
+            glTexCoord2f(1,0); glVertex2i(n.xres, n.yres);
+            glTexCoord2f(1,1); glVertex2i(n.xres, 0);
         glEnd();
         glBindTexture(GL_TEXTURE_2D, 0);
 
         //Druid sprite
         glPushMatrix();
         glColor3ub(255, 255, 255);
-        glTranslatef(w.sprite_four[0].pos[0], w.sprite_four[0].pos[1], 0.0f);
+        glTranslatef(n.sprite_four[0].pos[0], n.sprite_four[0].pos[1], 0.0f);
         //set alpha test
         //https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/
         //xhtml/glAlphaFunc.xml
@@ -365,16 +365,16 @@ void render_level_four() {
         //Set 4-channels of color intensity
         glColor4ub(255,255,255,255);
         //
-        glBindTexture(GL_TEXTURE_2D, s.spriteid_four);
+        glBindTexture(GL_TEXTURE_2D, n.spriteid_four);
         glBegin(GL_QUADS);
-            glTexCoord2f(0, 1); glVertex2f(-w.sprite_four[0].w, 
-                                          -w.sprite_four[0].h);
-            glTexCoord2f(0, 0); glVertex2f(-w.sprite_four[0].w,  
-                                           w.sprite_four[0].h);
-            glTexCoord2f(1, 0); glVertex2f( w.sprite_four[0].w,  
-                                           w.sprite_four[0].h);
-            glTexCoord2f(1, 1); glVertex2f( w.sprite_four[0].w, 
-                                          -w.sprite_four[0].h);
+            glTexCoord2f(0, 1); glVertex2f(-n.sprite_four[0].w, 
+                                          -n.sprite_four[0].h);
+            glTexCoord2f(0, 0); glVertex2f(-n.sprite_four[0].w,  
+                                           n.sprite_four[0].h);
+            glTexCoord2f(1, 0); glVertex2f( n.sprite_four[0].w,  
+                                           n.sprite_four[0].h);
+            glTexCoord2f(1, 1); glVertex2f( n.sprite_four[0].w, 
+                                          -n.sprite_four[0].h);
         glEnd();
         glBindTexture(GL_TEXTURE_2D, 0);
         glDisable(GL_ALPHA_TEST);
@@ -382,7 +382,7 @@ void render_level_four() {
 
         Rect r;
         unsigned int c = 0x00ffff44;
-        r.bot = w.yres - 20;
+        r.bot = n.yres - 20;
         r.left = 10;
         r.center = 0;
         ggprint8b(&r, 16, c, "Level 4");
