@@ -116,7 +116,7 @@ public:
 	void setTitle() {
 		//Set the window title bar.
 		XMapWindow(dpy, win);
-		XStoreName(dpy, win, "Walk Cycle");
+		XStoreName(dpy, win, "The Legend Of Indecisiveness");
 	}
 	void setupScreenRes(const int w, const int h) {
 		g.xres = w;
