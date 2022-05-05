@@ -282,19 +282,19 @@ void select_level_four() {
     n.state = STATE_LEVEL_FOUR;
 }
 
-void ssprite_move_right() {
+void ssprite_mv_right() {
     n.sprite_four[0].pos[0] += 1;
 }
 
-void ssprite_move_left() {
+void ssprite_mv_left() {
     n.sprite_four[0].pos[0] -= 1;
 }
 
-void ssprite_move_up() {
+void ssprite_mv_up() {
     n.sprite_four[0].pos[1] += 1;
 }
 
-void ssprite_move_down() {
+void ssprite_mv_down() {
     n.sprite_four[0].pos[1] -= 1;
 }
 void physics_level_four() {
