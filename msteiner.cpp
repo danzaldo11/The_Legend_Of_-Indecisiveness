@@ -392,7 +392,7 @@ void render_level_four() {
     }
 }
 
-unsigned char *buildAlphaDataS(Image *img)
+unsigned char *buildAlphaDataS4(Image *img)
 {
 	//add 4th component to RGB stream...
 	int i;
