@@ -128,7 +128,7 @@ public:
     }
 } n;
 
-void init_start_screens() {
+void init_start_screens4() {
     //OpenGL initialization
     glViewport(0, 0, n.xres, n.yres);
     //Initialize matrices
@@ -158,7 +158,7 @@ void init_start_screens() {
                               GL_RGB, GL_UNSIGNED_BYTE, start_screen.data);
 }
 
-void level_select_screens() {
+void level_select_screens4() {
     Rect r;
 
     unsigned int c = 0x00ffff44;
@@ -172,7 +172,7 @@ void level_select_screens() {
     ggprint8b(&r, 16, c, "To select level type the corresponding number");
 }
 
-void render_start_screens() {
+void render_start_screens4() {
     if (n.state == STATE_INTRO) {
         glClear(GL_COLOR_BUFFER_BIT);     
         glColor3ub(255, 255, 255);
