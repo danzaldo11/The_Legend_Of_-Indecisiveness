@@ -394,7 +394,7 @@ void render_level_four() {
 
 void Start_from_four()
 {
-	state = STATE_INTRO;	
+	n.state = STATE_INTRO;	
 }
 
 unsigned char *buildAlphaDataS4(Image *img)
