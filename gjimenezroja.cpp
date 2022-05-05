@@ -395,11 +395,11 @@ void render_level_three() {
         glPopMatrix();
 
         Rect r;
-        unsigned int c = 0x00ffff44;
+        unsigned int c = 0x00c21c10;
         r.bot = s.yres - 20;
         r.left = 10;
         r.center = 0;
-        ggprint8b(&r, 16, c, "gjimenezroja's Level");
+        ggprint8b(&r, 16, c, "Level 3");
         r.bot = 20;
         ggprint8b(&r, 16, c, "0 - Level Select");
         ggprint8b(&r, 16, c, "To select level type the corresponding number");
