@@ -2,10 +2,10 @@
 
 //extern void gjimenezroja(int inventory); 
 
-extern void select_level_two();
+extern void select_level_three();
 
-extern void physics_level_two(); 
+extern void physics_level_three(); 
 
-extern void render_level_two(); 
+extern void render_level_three(); 
 
-extern void init_level_two(); 
+extern void init_level_three(); 
