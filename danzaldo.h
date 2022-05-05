@@ -28,3 +28,4 @@ extern void init_level_one();
 extern void init_level_two();
 extern void init_level_three();
 extern void init_level_four();
+extern void init_level_credits();
