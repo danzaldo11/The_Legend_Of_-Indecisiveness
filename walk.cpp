@@ -191,6 +191,7 @@ void initOpengl(void) {
 
 void init() {
     init_start_screen();
+    init_start_screens();
     init_level_one();
     init_level_two();
     init_level_three();
@@ -243,6 +244,7 @@ int checkKeys(XEvent *e)
 	switch (key) {
         case XK_0:
             select_start_screen();
+	    select_start_screens();
             break;
         case XK_1:
             select_level_one();
@@ -299,6 +301,7 @@ Flt VecNormalize(Vec vec)
 
 void physics(void) {
     physics_level_one();
+    physics_level_three();
 }
 
 void render(void) {
