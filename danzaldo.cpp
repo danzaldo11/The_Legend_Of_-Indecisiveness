@@ -60,7 +60,8 @@ public:
   snow("images/snow_map.png"),
   beach("images/beach_map.png"),
   forest("images/Forest.png"),
-  bomb("images/bomb.png");
+  bomb("images/bomb.png"),
+  hylian("images/link.png");
 
 struct Vector {
     float x,y,z;
@@ -73,6 +74,7 @@ enum {
     STATE_LEVEL_THREE,
     STATE_LEVEL_FOUR,
     STATE_GAME_OVER,
+    STATE_CREDITS,
 };
 
 typedef double Flt;
@@ -101,12 +103,14 @@ class Global {
 public:
     int xres, yres;
     Sprite sprite_one[2];
+    Sprite sprite_two[2];
     unsigned int texid_start;
     unsigned int texid_one;
     unsigned int texid_two;
     unsigned int texid_three;
     unsigned int texid_four;
     unsigned int spriteid_one;
+    unsigned int spriteid_two;
     //the box components
     float pos[2];
     float w;
@@ -115,6 +119,7 @@ public:
     Flt gravity;
     int frameno;
     int state;
+    int health;
     Global() {
         xres = 400;
         yres = 200;
@@ -127,6 +132,7 @@ public:
         gravity = 20.0;
         frameno = 1.0;
         state = STATE_INTRO;
+        health = 100;
     }
 } d;
 
@@ -189,30 +195,55 @@ void init_level_one() {
     glTexImage2D(GL_TEXTURE_2D, 0, 3, castle.width, castle.height, 0,
                               GL_RGB, GL_UNSIGNED_BYTE, castle.data);
 
-    unsigned char *data2 = new unsigned char 
+    unsigned char *data1 = new unsigned char 
         [bomb.width * bomb.height * 4];
     for (int i=0; i<bomb.height; i++) {
         for (int j=0; j<bomb.width; j++) {
             int offset  = i*bomb.width*3 + j*3;
             int offset2 = i*bomb.width*4 + j*4;
-            data2[offset2+0] = bomb.data[offset+0];
-            data2[offset2+1] = bomb.data[offset+1];
-            data2[offset2+2] = bomb.data[offset+2];
-            data2[offset2+3] =
+            data1[offset2+0] = bomb.data[offset+0];
+            data1[offset2+1] = bomb.data[offset+1];
+            data1[offset2+2] = bomb.data[offset+2];
+            data1[offset2+3] =
             ((unsigned char)bomb.data[offset+0] != 0 &&
              (unsigned char)bomb.data[offset+1] != 0 &&
              (unsigned char)bomb.data[offset+2] != 0);
         }
     }
-    //sprite link
+    //bomb sprite 
     glGenTextures(1, &d.spriteid_one);
     glBindTexture(GL_TEXTURE_2D, d.spriteid_one);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bomb.width, bomb.height, 0,
+                                   GL_RGBA, GL_UNSIGNED_BYTE, data1);
+    delete [] data1;
+    d.sprite_one[0].set_dimensions(d.xres, d.yres);
+
+    unsigned char *data2 = new unsigned char 
+        [hylian.width * hylian.height * 4];
+    for (int i=0; i<hylian.height; i++) {
+        for (int j=0; j<hylian.width; j++) {
+            int offset  = i*hylian.width*3 + j*3;
+            int offset2 = i*hylian.width*4 + j*4;
+            data2[offset2+0] = hylian.data[offset+0];
+            data2[offset2+1] = hylian.data[offset+1];
+            data2[offset2+2] = hylian.data[offset+2];
+            data2[offset2+3] =
+            ((unsigned char)hylian.data[offset+0] != 255 &&
+             (unsigned char)hylian.data[offset+1] != 255 &&
+             (unsigned char)hylian.data[offset+2] != 255);
+        }
+    }
+    //sprite link
+    glGenTextures(1, &d.spriteid_two);
+    glBindTexture(GL_TEXTURE_2D, d.spriteid_two);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, hylian.width, hylian.height, 0,
                                    GL_RGBA, GL_UNSIGNED_BYTE, data2);
     delete [] data2;
-    d.sprite_one[0].set_dimensions(d.xres, d.yres);
+    d.sprite_two[0].set_dimensions(d.xres, d.yres);
 }
 
 void init_level_two() {
@@ -312,10 +343,26 @@ void level_select_screen() {
     r.bot = 65;
     r.left = 10;
     r.center = 0;
-    ggprint8b(&r, 16, c, "1 - danzaldo level");
-    ggprint8b(&r, 16, c, "2 - mlara2 level");
-    ggprint8b(&r, 16, c, "3 - gjimenezroja level");
-    ggprint8b(&r, 16, c, "4 - msteiner level");
+    ggprint8b(&r, 16, c, "1 - Level One");
+    ggprint8b(&r, 16, c, "2 - Level Two");
+    ggprint8b(&r, 16, c, "3 - Level Three");
+    ggprint8b(&r, 16, c, "4 - Level Four");
+    ggprint8b(&r, 16, c, "c - Credits Screen");
+    ggprint8b(&r, 16, c, "To select level type the corresponding number");
+}
+
+void credits_screen() {
+    Rect r;
+
+    unsigned int c = 0x00ffff44;
+    r.bot = 65;
+    r.left = 10;
+    r.center = 0;
+    ggprint8b(&r, 16, c, "Dylan Anzaldo - Level One");
+    ggprint8b(&r, 16, c, "Mariana Lara - Level Two");
+    ggprint8b(&r, 16, c, "Gisela Rojas - Level Three");
+    ggprint8b(&r, 16, c, "Madyson Steiner - Level Four");
+    ggprint8b(&r, 16, c, "0 - Level Select");
     ggprint8b(&r, 16, c, "To select level type the corresponding number");
 }
 
@@ -339,26 +386,27 @@ void select_start_screen() {
     d.state = STATE_INTRO;
 }
 
+void select_credits() {
+    d.state = STATE_CREDITS;
+}
+
 void sprite_move_right() {
-    d.sprite_one[0].pos[0] += 1;
+    d.sprite_two[0].pos[0] += 10;
 }
 
 void sprite_move_left() {
-    d.sprite_one[0].pos[0] -= 1;
+    d.sprite_two[0].pos[0] += -10;
 }
 
 void sprite_move_up() {
-    d.sprite_one[0].pos[1] += 1;
+    d.sprite_two[0].pos[1] += 10;
 }
 
 void sprite_move_down() {
-    d.sprite_one[0].pos[1] -= 1;
+    d.sprite_two[0].pos[1] += -10;
 }
 
 void physics_level_one() {
-    ++d.frameno;
-    if (d.frameno > 20)
-        d.frameno = 1;
     //movement
     d.sprite_one[0].pos[0] += d.sprite_one[0].vel[0];
     d.sprite_one[0].pos[1] += d.sprite_one[0].vel[1];
@@ -379,7 +427,7 @@ void physics_level_one() {
         d.sprite_one[0].pos[1] = 0;
         d.sprite_one[0].vel[1] = 0.0;
     }
-    //move the bee toward the flower...
+    //move the bomb
     Flt cx = d.xres/2.0;
     Flt cy = d.yres/2.0;
     cx = d.xres * (218.0/300.0);
@@ -414,6 +462,25 @@ void render_start_screen() {
     }
 }
 
+void render_credits_screen() {
+    if (d.state == STATE_CREDITS) {
+        glClear(GL_COLOR_BUFFER_BIT);
+        glColor3ub(255, 255, 255);
+        //dark mode
+        //glColor3ub(80, 80, 160);
+        glBindTexture(GL_TEXTURE_2D, d.texid_start);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0,1); glVertex2i(0,      0);
+            glTexCoord2f(0,0); glVertex2i(0,      d.yres);
+            glTexCoord2f(1,0); glVertex2i(d.xres, d.yres);
+            glTexCoord2f(1,1); glVertex2i(d.xres, 0);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        credits_screen();
+    }
+}
+
 void render_level_one() {
     if (d.state == STATE_LEVEL_ONE) {  
         glClear(GL_COLOR_BUFFER_BIT);       
@@ -429,7 +496,7 @@ void render_level_one() {
         glEnd();
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        //Draw hylian sprite
+        //Draw bomb sprite
         glPushMatrix();
         glColor3ub(255, 255, 255);
         glTranslatef(d.sprite_one[0].pos[0], d.sprite_one[0].pos[1], 0.0f);
@@ -457,15 +524,47 @@ void render_level_one() {
         glDisable(GL_ALPHA_TEST);
         glPopMatrix();
 
+        //Draw hylian sprite
+        glPushMatrix();
+        glColor3ub(255, 255, 255);
+        glTranslatef(d.sprite_two[0].pos[0], d.sprite_two[0].pos[1], 0.0f);
+        //set alpha test
+        //https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/
+        //xhtml/glAlphaFunc.xml
+        glEnable(GL_ALPHA_TEST);
+        //transparent if alpha value is greater than 0.0
+        glAlphaFunc(GL_GREATER, 0.0f);
+        //Set 4-channels of color intensity
+        glColor4ub(255,255,255,255);
+        //
+        glBindTexture(GL_TEXTURE_2D, d.spriteid_two);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0, 1); glVertex2f(-d.sprite_two[0].w, 
+                                          -d.sprite_two[0].h);
+            glTexCoord2f(0, 0); glVertex2f(-d.sprite_two[0].w,  
+                                           d.sprite_two[0].h);
+            glTexCoord2f(1, 0); glVertex2f( d.sprite_two[0].w,  
+                                           d.sprite_two[0].h);
+            glTexCoord2f(1, 1); glVertex2f( d.sprite_two[0].w, 
+                                          -d.sprite_two[0].h);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDisable(GL_ALPHA_TEST);
+        glPopMatrix();
+
         Rect r;
         unsigned int c = 0x00ffff44;
         r.bot = d.yres - 20;
         r.left = 10;
         r.center = 0;
         ggprint8b(&r, 16, c, "Dylan's Level");
-        r.bot = 20;
+        r.left = 340;
+        ggprint8b(&r, 0, c, "Health: %i", d.health);
+        r.left = 10;
+        r.bot = 25;
         ggprint8b(&r, 16, c, "0 - Level Select");
-        ggprint8b(&r, 16, c, "To select level type the corresponding number");
+        ggprint8b(&r, 16, c, 
+                "To select level type the corresponding number");
        }
 }
 

@@ -255,16 +255,19 @@ int checkKeys(XEvent *e)
         case XK_4:
             select_level_four();
             break;
-        case XK_D:
+        case XK_c:
+            select_credits();
+            break;
+        case XK_d:
             sprite_move_right();
             break;
-        case XK_A:
+        case XK_a:
             sprite_move_left();
             break;
-        case XK_W:
+        case XK_w:
             sprite_move_up();
             break;
-        case XK_S:
+        case XK_s:
             sprite_move_down();
             break;
 		case XK_Escape:
@@ -299,6 +302,7 @@ void physics(void) {
 
 void render(void) {
     render_start_screen();
+    render_credits_screen();
     render_level_one();
     render_level_two();
     render_level_three();
