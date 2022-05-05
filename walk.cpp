@@ -195,6 +195,7 @@ void init() {
     init_level_two();
     init_level_three();
     init_level_four();
+    init_level_credits();
 }
 
 void checkMouse(XEvent *e)
