@@ -214,7 +214,7 @@ void init_level_four() {
 
     //background forest
     glGenTextures(1, &s.texid_four);
-    glBindTexture(GL_TEXTURE_2D, d.texid_four);
+    glBindTexture(GL_TEXTURE_2D, s.texid_four);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, 3, forest.width, forest.height, 0,
@@ -343,11 +343,11 @@ void render_level_four() {
         glColor3ub(255, 255, 255);
         //dark mode
         //glColor3ub(80, 80, 160);
-        glBindTexture(GL_TEXTURE_2D, d.texid_four);
+        glBindTexture(GL_TEXTURE_2D, s.texid_four);
         glBegin(GL_QUADS);
             glTexCoord2f(0,1); glVertex2i(0,      0);
-            glTexCoord2f(0,0); glVertex2i(0,      d.yres);
-            glTexCoord2f(1,0); glVertex2i(d.xres, d.yres);
+            glTexCoord2f(0,0); glVertex2i(0,      s.yres);
+            glTexCoord2f(1,0); glVertex2i(d.xres, s.yres);
             glTexCoord2f(1,1); glVertex2i(d.xres, 0);
         glEnd();
         glBindTexture(GL_TEXTURE_2D, 0);
