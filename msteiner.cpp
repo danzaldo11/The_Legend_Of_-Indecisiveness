@@ -60,7 +60,7 @@ public:
         if (!isPPM)
             unlink(newfile);
     }
-}  start_screen("images/start_screen.png")
+}  start_screen("images/start_screen.png"),
    druid("images/DruidElf.png"),
    fiend("images/fiend_enemy.png"),
    forest("images/Forest.png");
@@ -365,7 +365,7 @@ void render_level_four() {
         //Set 4-channels of color intensity
         glColor4ub(255,255,255,255);
         //
-        glBindTexture(GL_TEXTURE_2D, s.spriteid_foursprite_four);
+        glBindTexture(GL_TEXTURE_2D, s.spriteid_four);
         glBegin(GL_QUADS);
             glTexCoord2f(0, 1); glVertex2f(-s.sprite_four[0].w, 
                                           -s.sprite_four[0].h);
