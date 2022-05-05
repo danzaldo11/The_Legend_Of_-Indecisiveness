@@ -338,7 +338,7 @@ void physics_level_four() {
 }
 
 void render_level_four() {
-     if (d.state == STATE_LEVEL_FOUR) {
+     if (s.state == STATE_LEVEL_FOUR) {
         glClear(GL_COLOR_BUFFER_BIT);
         glColor3ub(255, 255, 255);
         //dark mode
