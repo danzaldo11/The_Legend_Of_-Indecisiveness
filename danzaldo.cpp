@@ -389,7 +389,6 @@ void credits_screen() {
     unsigned int c = 0x004ea4f2;
     r.bot = 185;
     r.left = 200;
-    r.center = 0;
     ggprint8b(&r, 16, c, "Credits Page");
     ggprint8b(&r, 16, c, "---Level One---");
     ggprint8b(&r, 16, c, "Dylan Anzaldo");
