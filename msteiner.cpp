@@ -392,6 +392,11 @@ void render_level_four() {
     }
 }
 
+void Start_from_four()
+{
+	state = STATE_INTRO;	
+}
+
 unsigned char *buildAlphaDataS4(Image *img)
 {
 	//add 4th component to RGB stream...
