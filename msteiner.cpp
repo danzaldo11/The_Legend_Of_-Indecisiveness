@@ -62,7 +62,7 @@ public:
     }
 }  start_screen("images/start_screen.png"),
    druid("images/DruidElf.png"),
-   fiend("images/fiend_enemy.png"),
+   fiend("images/Fiend_enemy.png"),
    forest("images/Forest.png");
 
 struct Vector {
