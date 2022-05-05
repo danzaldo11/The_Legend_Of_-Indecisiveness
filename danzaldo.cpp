@@ -61,7 +61,8 @@ public:
   beach("images/beach_map.png"),
   forest("images/Forest.png"),
   bomb("images/bomb.png"),
-  hylian("images/link.png");
+  hylian("images/link.png"),
+  credits("images/credits.png");
 
 struct Vector {
     float x,y,z;
@@ -109,6 +110,7 @@ public:
     unsigned int texid_two;
     unsigned int texid_three;
     unsigned int texid_four;
+    unsigned int texid_credits;
     unsigned int spriteid_one;
     unsigned int spriteid_two;
     //the box components
@@ -336,32 +338,68 @@ void init_level_four() {
                               GL_RGB, GL_UNSIGNED_BYTE, forest.data);
 }
 
+void init_level_credits() {
+    //OpenGL initialization
+    glViewport(0, 0, d.xres, d.yres);
+    //Initialize matrices
+    glMatrixMode(GL_PROJECTION); glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW); glLoadIdentity();
+    //This sets 2D mode (no perspective)
+    glOrtho(0, d.xres, 0, d.yres, -1, 1);
+    //
+    //glDisable(GL_LIGHTING);
+    //glDisable(GL_DEPTH_TEST);
+    //glDisable(GL_FOG);
+    //glDisable(GL_CULL_FACE);
+    //
+    //Clear the screen
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    //glClear(GL_COLOR_BUFFER_BIT);
+    //Do this to allow fonts
+    glEnable(GL_TEXTURE_2D);
+    initialize_fonts();
+
+    //background credits
+    glGenTextures(1, &d.texid_credits);
+    glBindTexture(GL_TEXTURE_2D, d.texid_credits);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, credits.width, credits.height, 0,
+                              GL_RGB, GL_UNSIGNED_BYTE, credits.data);
+}
+
 void level_select_screen() {
     Rect r;
 
-    unsigned int c = 0x00ffff44;
-    r.bot = 65;
+    unsigned int c = 0x00ffffff;
+    r.bot = 80;
     r.left = 10;
     r.center = 0;
     ggprint8b(&r, 16, c, "1 - Level One");
     ggprint8b(&r, 16, c, "2 - Level Two");
     ggprint8b(&r, 16, c, "3 - Level Three");
     ggprint8b(&r, 16, c, "4 - Level Four");
-    ggprint8b(&r, 16, c, "c - Credits Screen");
+    ggprint8b(&r, 16, c, "C - Credits Screen");
     ggprint8b(&r, 16, c, "To select level type the corresponding number");
 }
 
 void credits_screen() {
     Rect r;
 
-    unsigned int c = 0x00ffff44;
-    r.bot = 65;
-    r.left = 10;
+    unsigned int c = 0x004ea4f2;
+    r.bot = 185;
+    r.left = 200;
     r.center = 0;
-    ggprint8b(&r, 16, c, "Dylan Anzaldo - Level One");
-    ggprint8b(&r, 16, c, "Mariana Lara - Level Two");
-    ggprint8b(&r, 16, c, "Gisela Rojas - Level Three");
-    ggprint8b(&r, 16, c, "Madyson Steiner - Level Four");
+    ggprint8b(&r, 16, c, "Credits Page");
+    ggprint8b(&r, 16, c, "---Level One---");
+    ggprint8b(&r, 16, c, "Dylan Anzaldo");
+    ggprint8b(&r, 16, c, "---Level Two---");
+    ggprint8b(&r, 16, c, "Mariana Lara");
+    ggprint8b(&r, 16, c, "---Level Three---");
+    ggprint8b(&r, 16, c, "Gisela Jimenez");
+    ggprint8b(&r, 16, c, "---Level Four---");
+    ggprint8b(&r, 16, c, "Madyson Steiner");
+    ggprint8b(&r, 16, c, " ");
     ggprint8b(&r, 16, c, "0 - Level Select");
     ggprint8b(&r, 16, c, "To select level type the corresponding number");
 }
@@ -446,7 +484,7 @@ void physics_level_one() {
 void render_start_screen() {
     if (d.state == STATE_INTRO) {
         glClear(GL_COLOR_BUFFER_BIT);     
-        glColor3ub(255, 255, 255);
+        glColor3ub(211, 193, 253);
         //dark mode
         //glColor3ub(80, 80, 160);
         glBindTexture(GL_TEXTURE_2D, d.texid_start);
@@ -468,7 +506,7 @@ void render_credits_screen() {
         glColor3ub(255, 255, 255);
         //dark mode
         //glColor3ub(80, 80, 160);
-        glBindTexture(GL_TEXTURE_2D, d.texid_start);
+        glBindTexture(GL_TEXTURE_2D, d.texid_credits);
         glBegin(GL_QUADS);
             glTexCoord2f(0,1); glVertex2i(0,      0);
             glTexCoord2f(0,0); glVertex2i(0,      d.yres);
@@ -557,7 +595,7 @@ void render_level_one() {
         r.bot = d.yres - 20;
         r.left = 10;
         r.center = 0;
-        ggprint8b(&r, 0, c, "Dylan's Level");
+        ggprint8b(&r, 0, c, "Level 1");
         r.left = 310;
         ggprint8b(&r, 16, c, "Health: %i", d.health);
         ggprint8b(&r, 16, c, "W - Move Up");
@@ -588,11 +626,11 @@ void render_level_two() {
         glBindTexture(GL_TEXTURE_2D, 0);
 
         Rect r;
-        unsigned int c = 0x00ffff44;
+        unsigned int c = 0x00d8fc89;
         r.bot = d.yres - 20;
         r.left = 10;
         r.center = 0;
-        ggprint8b(&r, 16, c, "Mlara2's Level");
+        ggprint8b(&r, 16, c, "Level 2");
         r.bot = 20;
         ggprint8b(&r, 16, c, "0 - Level Select");
         ggprint8b(&r, 16, c, "To select level type the corresponding number");
@@ -615,11 +653,11 @@ void render_level_three() {
         glBindTexture(GL_TEXTURE_2D, 0);
 
         Rect r;
-        unsigned int c = 0x00ffff44;
+        unsigned int c = 0x00c21c10;
         r.bot = d.yres - 20;
         r.left = 10;
         r.center = 0;
-        ggprint8b(&r, 16, c, "gjimenezroja's Level");
+        ggprint8b(&r, 16, c, "Level 3");
         r.bot = 20;
         ggprint8b(&r, 16, c, "0 - Level Select");
         ggprint8b(&r, 16, c, "To select level type the corresponding number");
@@ -642,11 +680,11 @@ void render_level_four() {
         glBindTexture(GL_TEXTURE_2D, 0);
 
         Rect r;
-        unsigned int c = 0x00ffff44;
+        unsigned int c = 0x00f26ebb;
         r.bot = d.yres - 20;
         r.left = 10;
         r.center = 0;
-        ggprint8b(&r, 16, c, "Msteiner's Level");
+        ggprint8b(&r, 16, c, "Level 4");
         r.bot = 20;
         ggprint8b(&r, 16, c, "0 - Level Select");
         ggprint8b(&r, 16, c, "To select level type the corresponding number");
