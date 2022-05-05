@@ -43,42 +43,6 @@ const float timeslice = 1.0f;
 const float gravity = -0.2f;
 #define ALPHA 1
 
-
-class Image {
-public:
-    int width, height, max;
-    char *data;
-    Image() { }
-    Image(const char *fname) {
-        bool isPPM = true;
-        char str[1200];
-        char newfile[200];
-        ifstream fin;
-        char *p = strstr((char *)fname, ".ppm");
-        if (!p) {
-            //not a ppm file
-            isPPM = false;
-            strcpy(newfile, fname);
-            newfile[strlen(newfile)+4] = '\0';
-            strcat(newfile, ".ppm");
-            sprintf(str, "convert %s %s", fname, newfile);
-            system(str);
-            fin.open(newfile);
-        } else {
-            fin.open(fname);
-        }
-        char p6[10];
-        fin >> p6;
-        fin >> width >> height;
-        fin >> max;
-        data = new char [width * height * 3];
-        fin.read(data, width * height * 3);
-        fin.close();
-        if (!isPPM)
-            unlink(newfile);
-    }
-} img("images/start_screen.png");
-
 //-----------------------------------------------------------------------------
 //Setup timers
 class Timers {
@@ -107,7 +71,6 @@ public:
 class Global {
 public:
 	int xres, yres;
-    unsigned int texid;
 	Global() {
 		xres = 400;
         yres = 200;
@@ -222,67 +185,12 @@ int main(void)
 	return 0;
 }
 
-unsigned char *buildAlphaData(Image *img)
-{
-	//add 4th component to RGB stream...
-	int i;
-	unsigned char *newdata, *ptr;
-	unsigned char *data = (unsigned char *)img->data;
-	newdata = (unsigned char *)malloc(img->width * img->height * 4);
-	ptr = newdata;
-	unsigned char a,b,c;
-	//use the first pixel in the image as the transparent color.
-	unsigned char t0 = *(data+0);
-	unsigned char t1 = *(data+1);
-	unsigned char t2 = *(data+2);
-	for (i=0; i<img->width * img->height * 3; i+=3) {
-		a = *(data+0);
-		b = *(data+1);
-		c = *(data+2);
-		*(ptr+0) = a;
-		*(ptr+1) = b;
-		*(ptr+2) = c;
-		*(ptr+3) = 1;
-		if (a==t0 && b==t1 && c==t2)
-			*(ptr+3) = 0;
-		//-----------------------------------------------
-		ptr += 4;
-		data += 3;
-	}
-	return newdata;
-}
-
 void initOpengl(void) {
-    //OpenGL initialization
-    glViewport(0, 0, g.xres, g.yres);
-    //Initialize matrices
-    glMatrixMode(GL_PROJECTION); glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW); glLoadIdentity();
-    //This sets 2D mode (no perspective)
-    glOrtho(0, g.xres, 0, g.yres, -1, 1);
-    //
-    //glDisable(GL_LIGHTING);
-    //glDisable(GL_DEPTH_TEST);
-    //glDisable(GL_FOG);
-    //glDisable(GL_CULL_FACE);
-    //
-    //Clear the screen
-    glClearColor(1.0, 1.0, 1.0, 1.0);
-    //glClear(GL_COLOR_BUFFER_BIT);
-    //Do this to allow fonts
-    glEnable(GL_TEXTURE_2D);
-    initialize_fonts();
 
-    //background 
-    glGenTextures(1, &g.texid);
-    glBindTexture(GL_TEXTURE_2D, g.texid);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, img.width, img.height, 0,
-                              GL_RGB, GL_UNSIGNED_BYTE, img.data);
 }
 
 void init() {
+    init_start_screen();
     init_level_one();
     init_level_two();
     init_level_three();
@@ -347,6 +255,18 @@ int checkKeys(XEvent *e)
         case XK_4:
             select_level_four();
             break;
+        case XK_D:
+            sprite_move_right();
+            break;
+        case XK_A:
+            sprite_move_left();
+            break;
+        case XK_W:
+            sprite_move_up();
+            break;
+        case XK_S:
+            sprite_move_down();
+            break;
 		case XK_Escape:
 			return 1;
 			break;
@@ -373,26 +293,12 @@ Flt VecNormalize(Vec vec)
 	return(len);
 }
 
-void physics(void)
-{
-
+void physics(void) {
+    physics_level_one();
 }
 
 void render(void) {
-    glClear(GL_COLOR_BUFFER_BIT);     
-    glColor3ub(255, 255, 255);
-    //dark mode
-    //glColor3ub(80, 80, 160);
-    glBindTexture(GL_TEXTURE_2D, g.texid);
-    glBegin(GL_QUADS);
-        glTexCoord2f(0,1); glVertex2i(0,      0);
-        glTexCoord2f(0,0); glVertex2i(0,      g.yres);
-        glTexCoord2f(1,0); glVertex2i(g.xres, g.yres);
-        glTexCoord2f(1,1); glVertex2i(g.xres, 0);
-    glEnd();
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    level_select_screen();
+    render_start_screen();
     render_level_one();
     render_level_two();
     render_level_three();

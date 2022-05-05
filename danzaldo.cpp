@@ -8,11 +8,11 @@
 #include <fstream>
 using namespace std;
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <unistd.h>
-#include <time.h>
-#include <math.h>
+#include <ctime>
+#include <cmath>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
@@ -55,9 +55,12 @@ public:
         if (!isPPM)
             unlink(newfile);
     }
-} castle("images/castle.png"),
+} start("images/start_screen.png"),
+  castle("images/castle.png"),
   snow("images/snow_map.png"),
-  beach("images/beach_map.png");
+  beach("images/beach_map.png"),
+  forest("images/Forest.png"),
+  bomb("images/bomb.png");
 
 struct Vector {
     float x,y,z;
@@ -74,7 +77,7 @@ enum {
 
 typedef double Flt;
 //a game object
-class Bat {
+class Sprite {
 public:
     Flt pos[3];      //vector
     Flt vel[3];      //vector
@@ -85,7 +88,7 @@ public:
         w = (float)x * 0.05;
         h = w;
     }
-    Bat() {
+    Sprite() {
         w = h = 4.0;
         pos[0] = 1.0;
         pos[1] = 200.0;
@@ -97,12 +100,13 @@ public:
 class Global {
 public:
     int xres, yres;
-    Bat bats[2];
+    Sprite sprite_one[2];
+    unsigned int texid_start;
     unsigned int texid_one;
     unsigned int texid_two;
     unsigned int texid_three;
     unsigned int texid_four;
-    unsigned int spriteid;
+    unsigned int spriteid_one;
     //the box components
     float pos[2];
     float w;
@@ -126,7 +130,35 @@ public:
     }
 } d;
 
+void init_start_screen() {
+    //OpenGL initialization
+    glViewport(0, 0, d.xres, d.yres);
+    //Initialize matrices
+    glMatrixMode(GL_PROJECTION); glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW); glLoadIdentity();
+    //This sets 2D mode (no perspective)
+    glOrtho(0, d.xres, 0, d.yres, -1, 1);
+    //
+    //glDisable(GL_LIGHTING);
+    //glDisable(GL_DEPTH_TEST);
+    //glDisable(GL_FOG);
+    //glDisable(GL_CULL_FACE);
+    //
+    //Clear the screen
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    //glClear(GL_COLOR_BUFFER_BIT);
+    //Do this to allow fonts
+    glEnable(GL_TEXTURE_2D);
+    initialize_fonts();
 
+    //background 
+    glGenTextures(1, &d.texid_start);
+    glBindTexture(GL_TEXTURE_2D, d.texid_start);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, start.width, start.height, 0,
+                              GL_RGB, GL_UNSIGNED_BYTE, start.data);
+}
 
 void init_level_one() {
     //OpenGL initialization
@@ -156,6 +188,31 @@ void init_level_one() {
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, 3, castle.width, castle.height, 0,
                               GL_RGB, GL_UNSIGNED_BYTE, castle.data);
+
+    unsigned char *data2 = new unsigned char 
+        [bomb.width * bomb.height * 4];
+    for (int i=0; i<bomb.height; i++) {
+        for (int j=0; j<bomb.width; j++) {
+            int offset  = i*bomb.width*3 + j*3;
+            int offset2 = i*bomb.width*4 + j*4;
+            data2[offset2+0] = bomb.data[offset+0];
+            data2[offset2+1] = bomb.data[offset+1];
+            data2[offset2+2] = bomb.data[offset+2];
+            data2[offset2+3] =
+            ((unsigned char)bomb.data[offset+0] != 0 &&
+             (unsigned char)bomb.data[offset+1] != 0 &&
+             (unsigned char)bomb.data[offset+2] != 0);
+        }
+    }
+    //sprite link
+    glGenTextures(1, &d.spriteid_one);
+    glBindTexture(GL_TEXTURE_2D, d.spriteid_one);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bomb.width, bomb.height, 0,
+                                   GL_RGBA, GL_UNSIGNED_BYTE, data2);
+    delete [] data2;
+    d.sprite_one[0].set_dimensions(d.xres, d.yres);
 }
 
 void init_level_two() {
@@ -244,8 +301,8 @@ void init_level_four() {
     glBindTexture(GL_TEXTURE_2D, d.texid_four);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, castle.width, castle.height, 0,
-                              GL_RGB, GL_UNSIGNED_BYTE, castle.data);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, forest.width, forest.height, 0,
+                              GL_RGB, GL_UNSIGNED_BYTE, forest.data);
 }
 
 void level_select_screen() {
@@ -282,6 +339,81 @@ void select_start_screen() {
     d.state = STATE_INTRO;
 }
 
+void sprite_move_right() {
+    d.sprite_one[0].pos[0] += 1;
+}
+
+void sprite_move_left() {
+    d.sprite_one[0].pos[0] -= 1;
+}
+
+void sprite_move_up() {
+    d.sprite_one[0].pos[1] += 1;
+}
+
+void sprite_move_down() {
+    d.sprite_one[0].pos[1] -= 1;
+}
+
+void physics_level_one() {
+    ++d.frameno;
+    if (d.frameno > 20)
+        d.frameno = 1;
+    //movement
+    d.sprite_one[0].pos[0] += d.sprite_one[0].vel[0];
+    d.sprite_one[0].pos[1] += d.sprite_one[0].vel[1];
+    //boundry test
+    if (d.sprite_one[0].pos[0] >= d.xres) {
+        d.sprite_one[0].pos[0] = d.xres;
+        d.sprite_one[0].vel[0] = 0.0;
+    }
+    if (d.sprite_one[0].pos[0] <= 0) {
+        d.sprite_one[0].pos[0] = 0;
+        d.sprite_one[0].vel[0] = 0.0;
+    }
+    if (d.sprite_one[0].pos[1] >= d.yres) {
+        d.sprite_one[0].pos[1] = d.yres;
+        d.sprite_one[0].vel[1] = 0.0;
+    }
+    if (d.sprite_one[0].pos[1] <= 0) {
+        d.sprite_one[0].pos[1] = 0;
+        d.sprite_one[0].vel[1] = 0.0;
+    }
+    //move the bee toward the flower...
+    Flt cx = d.xres/2.0;
+    Flt cy = d.yres/2.0;
+    cx = d.xres * (218.0/300.0);
+    cy = d.yres * (86.0/169.0);
+    Flt dx = cx - d.sprite_one[0].pos[0];
+    Flt dy = cy - d.sprite_one[0].pos[1];
+    Flt dist = (dx*dx + dy*dy);
+    if (dist < 0.01)
+        dist = 0.01; //clamp
+    d.sprite_one[0].vel[0] += (dx / dist) * d.gravity;
+    d.sprite_one[0].vel[1] += (dy / dist) * d.gravity;
+    d.sprite_one[0].vel[0] += ((Flt)rand() / (Flt)RAND_MAX) * 0.5 - 0.25;
+    d.sprite_one[0].vel[1] += ((Flt)rand() / (Flt)RAND_MAX) * 0.5 - 0.25;
+}
+
+void render_start_screen() {
+    if (d.state == STATE_INTRO) {
+        glClear(GL_COLOR_BUFFER_BIT);     
+        glColor3ub(255, 255, 255);
+        //dark mode
+        //glColor3ub(80, 80, 160);
+        glBindTexture(GL_TEXTURE_2D, d.texid_start);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0,1); glVertex2i(0,      0);
+            glTexCoord2f(0,0); glVertex2i(0,      d.yres);
+            glTexCoord2f(1,0); glVertex2i(d.xres, d.yres);
+            glTexCoord2f(1,1); glVertex2i(d.xres, 0);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        level_select_screen();
+    }
+}
+
 void render_level_one() {
     if (d.state == STATE_LEVEL_ONE) {  
         glClear(GL_COLOR_BUFFER_BIT);       
@@ -296,6 +428,34 @@ void render_level_one() {
             glTexCoord2f(1,1); glVertex2i(d.xres, 0);
         glEnd();
         glBindTexture(GL_TEXTURE_2D, 0);
+
+        //Draw hylian sprite
+        glPushMatrix();
+        glColor3ub(255, 255, 255);
+        glTranslatef(d.sprite_one[0].pos[0], d.sprite_one[0].pos[1], 0.0f);
+        //set alpha test
+        //https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/
+        //xhtml/glAlphaFunc.xml
+        glEnable(GL_ALPHA_TEST);
+        //transparent if alpha value is greater than 0.0
+        glAlphaFunc(GL_GREATER, 0.0f);
+        //Set 4-channels of color intensity
+        glColor4ub(255,255,255,255);
+        //
+        glBindTexture(GL_TEXTURE_2D, d.spriteid_one);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0, 1); glVertex2f(-d.sprite_one[0].w, 
+                                          -d.sprite_one[0].h);
+            glTexCoord2f(0, 0); glVertex2f(-d.sprite_one[0].w,  
+                                           d.sprite_one[0].h);
+            glTexCoord2f(1, 0); glVertex2f( d.sprite_one[0].w,  
+                                           d.sprite_one[0].h);
+            glTexCoord2f(1, 1); glVertex2f( d.sprite_one[0].w, 
+                                          -d.sprite_one[0].h);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDisable(GL_ALPHA_TEST);
+        glPopMatrix();
 
         Rect r;
         unsigned int c = 0x00ffff44;
@@ -388,4 +548,34 @@ void render_level_four() {
         ggprint8b(&r, 16, c, "0 - Level Select");
         ggprint8b(&r, 16, c, "To select level type the corresponding number");
     }
+}
+
+unsigned char *buildAlphaData(Image *img)
+{
+	//add 4th component to RGB stream...
+	int i;
+	unsigned char *newdata, *ptr;
+	unsigned char *data = (unsigned char *)img->data;
+	newdata = (unsigned char *)malloc(img->width * img->height * 4);
+	ptr = newdata;
+	unsigned char a,b,c;
+	//use the first pixel in the image as the transparent color.
+	unsigned char t0 = *(data+0);
+	unsigned char t1 = *(data+1);
+	unsigned char t2 = *(data+2);
+	for (i=0; i<img->width * img->height * 3; i+=3) {
+		a = *(data+0);
+		b = *(data+1);
+		c = *(data+2);
+		*(ptr+0) = a;
+		*(ptr+1) = b;
+		*(ptr+2) = c;
+		*(ptr+3) = 1;
+		if (a==t0 && b==t1 && c==t2)
+			*(ptr+3) = 0;
+		//-----------------------------------------------
+		ptr += 4;
+		data += 3;
+	}
+	return newdata;
 }
