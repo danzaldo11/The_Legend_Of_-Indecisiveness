@@ -57,7 +57,6 @@ public:
     }
 } start("images/start_screen.png"),
   castle("images/castle.png"),
-  beach("images/beach_map.png"),
   forest("images/Forest.png"),
   bomb("images/bomb.png"),
   hylian("images/link.png"),
@@ -106,7 +105,7 @@ public:
     Sprite sprite_two[2];
     unsigned int texid_start;
     unsigned int texid_one;
-    unsigned int texid_two;
+    //unsigned int texid_two;
     //unsigned int texid_three;
     unsigned int texid_four;
     unsigned int texid_credits;
@@ -249,35 +248,6 @@ void init_level_one() {
     d.sprite_two[0].set_dimensions(d.xres, d.yres);
 }
 
-void init_level_two() {
-    //OpenGL initialization
-    glViewport(0, 0, d.xres, d.yres);
-    //Initialize matrices
-    glMatrixMode(GL_PROJECTION); glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW); glLoadIdentity();
-    //This sets 2D mode (no perspective)
-    glOrtho(0, d.xres, 0, d.yres, -1, 1);
-    //
-    //glDisable(GL_LIGHTING);
-    //glDisable(GL_DEPTH_TEST);
-    //glDisable(GL_FOG);
-    //glDisable(GL_CULL_FACE);
-    //
-    //Clear the screen
-    glClearColor(1.0, 1.0, 1.0, 1.0);
-    //glClear(GL_COLOR_BUFFER_BIT);
-    //Do this to allow fonts
-    glEnable(GL_TEXTURE_2D);
-    initialize_fonts();
-
-    //background beach
-    glGenTextures(1, &d.texid_two);
-    glBindTexture(GL_TEXTURE_2D, d.texid_two);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, beach.width, beach.height, 0,
-                              GL_RGB, GL_UNSIGNED_BYTE, beach.data);
-}
 
 void init_level_four() {
     //OpenGL initialization
@@ -408,9 +378,10 @@ void select_level_one() {
     d.state = STATE_LEVEL_ONE;
 }
 
-void select_level_two() {
+/*void select_level_two() {
     d.state = STATE_LEVEL_TWO;
 }
+*/
 /*
 void select_level_three() {
     d.state = STATE_LEVEL_THREE;
@@ -625,32 +596,6 @@ void render_level_one() {
        }
 }
 
-void render_level_two() {
-    if (d.state == STATE_LEVEL_TWO) {
-        glClear(GL_COLOR_BUFFER_BIT);
-        glColor3ub(255, 255, 255);
-        //dark mode
-        //glColor3ub(80, 80, 160);
-        glBindTexture(GL_TEXTURE_2D, d.texid_two);
-        glBegin(GL_QUADS);
-            glTexCoord2f(0,1); glVertex2i(0,      0);
-            glTexCoord2f(0,0); glVertex2i(0,      d.yres);
-            glTexCoord2f(1,0); glVertex2i(d.xres, d.yres);
-            glTexCoord2f(1,1); glVertex2i(d.xres, 0);
-        glEnd();
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        Rect r;
-        unsigned int c = 0x00d8fc89;
-        r.bot = d.yres - 20;
-        r.left = 10;
-        r.center = 0;
-        ggprint8b(&r, 16, c, "Level 2");
-        r.bot = 20;
-        ggprint8b(&r, 16, c, "0 - Level Select");
-        ggprint8b(&r, 16, c, "To select level type the corresponding number");
-    }
-}
 
 void render_level_four() {
      if (d.state == STATE_LEVEL_FOUR) {
