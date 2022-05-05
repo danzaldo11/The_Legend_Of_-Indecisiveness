@@ -557,9 +557,13 @@ void render_level_one() {
         r.bot = d.yres - 20;
         r.left = 10;
         r.center = 0;
-        ggprint8b(&r, 16, c, "Dylan's Level");
-        r.left = 340;
-        ggprint8b(&r, 0, c, "Health: %i", d.health);
+        ggprint8b(&r, 0, c, "Dylan's Level");
+        r.left = 310;
+        ggprint8b(&r, 16, c, "Health: %i", d.health);
+        ggprint8b(&r, 16, c, "W - Move Up");
+        ggprint8b(&r, 16, c, "A - Move Left");
+        ggprint8b(&r, 16, c, "S - Move Down");
+        ggprint8b(&r, 16, c, "D - Move Right");
         r.left = 10;
         r.bot = 25;
         ggprint8b(&r, 16, c, "0 - Level Select");
