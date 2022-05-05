@@ -248,6 +248,7 @@ int checkKeys(XEvent *e)
             select_start_screen();
 	    select_start_screens();
 	    select_start_screen2();
+	    Start_from_four();
             break;
         case XK_1:
             select_level_one();
