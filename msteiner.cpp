@@ -193,12 +193,12 @@ void render_start_screens() {
 
 void init_level_four() {
     //OpenGL initialization
-    glViewport(0, 0, d.xres, d.yres);
+    glViewport(0, 0, s.xres, s.yres);
     //Initialize matrices
     glMatrixMode(GL_PROJECTION); glLoadIdentity();
     glMatrixMode(GL_MODELVIEW); glLoadIdentity();
     //This sets 2D mode (no perspective)
-    glOrtho(0, d.xres, 0, d.yres, -1, 1);
+    glOrtho(0, s.xres, 0, s.yres, -1, 1);
     //
     //glDisable(GL_LIGHTING);
     //glDisable(GL_DEPTH_TEST);
