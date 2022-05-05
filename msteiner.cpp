@@ -382,7 +382,7 @@ void render_level_four() {
 
         Rect r;
         unsigned int c = 0x00ffff44;
-        r.bot = d.yres - 20;
+        r.bot = s.yres - 20;
         r.left = 10;
         r.center = 0;
         ggprint8b(&r, 16, c, "Level 4");
