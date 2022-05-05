@@ -213,7 +213,7 @@ void init_level_four() {
     initialize_fonts();
 
     //background forest
-    glGenTextures(1, &d.texid_four);
+    glGenTextures(1, &s.texid_four);
     glBindTexture(GL_TEXTURE_2D, d.texid_four);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
