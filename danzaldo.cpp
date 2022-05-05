@@ -106,7 +106,7 @@ public:
     unsigned int texid_one;
     //unsigned int texid_two;
     //unsigned int texid_three;
-    unsigned int texid_four;
+    //unsigned int texid_four;
     unsigned int texid_credits;
     unsigned int spriteid_one;
     unsigned int spriteid_two;
@@ -247,37 +247,6 @@ void init_level_one() {
     d.sprite_two[0].set_dimensions(d.xres, d.yres);
 }
 
-
-void init_level_four() {
-    //OpenGL initialization
-    glViewport(0, 0, d.xres, d.yres);
-    //Initialize matrices
-    glMatrixMode(GL_PROJECTION); glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW); glLoadIdentity();
-    //This sets 2D mode (no perspective)
-    glOrtho(0, d.xres, 0, d.yres, -1, 1);
-    //
-    //glDisable(GL_LIGHTING);
-    //glDisable(GL_DEPTH_TEST);
-    //glDisable(GL_FOG);
-    //glDisable(GL_CULL_FACE);
-    //
-    //Clear the screen
-    glClearColor(1.0, 1.0, 1.0, 1.0);
-    //glClear(GL_COLOR_BUFFER_BIT);
-    //Do this to allow fonts
-    glEnable(GL_TEXTURE_2D);
-    initialize_fonts();
-
-    //background castle
-    glGenTextures(1, &d.texid_four);
-    glBindTexture(GL_TEXTURE_2D, d.texid_four);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, forest.width, forest.height, 0,
-                              GL_RGB, GL_UNSIGNED_BYTE, forest.data);
-}
-
 void init_game_over() {
     //OpenGL initialization
     glViewport(0, 0, d.xres, d.yres);
@@ -375,19 +344,6 @@ void credits_screen() {
 
 void select_level_one() {
     d.state = STATE_LEVEL_ONE;
-}
-
-/*void select_level_two() {
-    d.state = STATE_LEVEL_TWO;
-}
-*/
-/*
-void select_level_three() {
-    d.state = STATE_LEVEL_THREE;
-}
-*/
-void select_level_four() {
-    d.state = STATE_LEVEL_FOUR;
 }
 
 void select_start_screen() {
@@ -595,34 +551,6 @@ void render_level_one() {
        }
 }
 
-
-void render_level_four() {
-     if (d.state == STATE_LEVEL_FOUR) {
-        glClear(GL_COLOR_BUFFER_BIT);
-        glColor3ub(255, 255, 255);
-        //dark mode
-        //glColor3ub(80, 80, 160);
-        glBindTexture(GL_TEXTURE_2D, d.texid_four);
-        glBegin(GL_QUADS);
-            glTexCoord2f(0,1); glVertex2i(0,      0);
-            glTexCoord2f(0,0); glVertex2i(0,      d.yres);
-            glTexCoord2f(1,0); glVertex2i(d.xres, d.yres);
-            glTexCoord2f(1,1); glVertex2i(d.xres, 0);
-        glEnd();
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        Rect r;
-        unsigned int c = 0x00f26ebb;
-        r.bot = d.yres - 20;
-        r.left = 10;
-        r.center = 0;
-        ggprint8b(&r, 16, c, "Level 4");
-        r.bot = 20;
-        ggprint8b(&r, 16, c, "0 - Level Select");
-        ggprint8b(&r, 16, c, "To select level type the corresponding number");
-    }
-}
-
 void render_game_over() {
     if (d.state == STATE_GAME_OVER) {
         glClear(GL_COLOR_BUFFER_BIT);     
@@ -650,34 +578,4 @@ void render_game_over() {
         ggprint8b(&r, 16, c,
                 "To select level type the corresponding number");
     }
-}
-
-unsigned char *buildAlphaData(Image *img)
-{
-	//add 4th component to RGB stream...
-	int i;
-	unsigned char *newdata, *ptr;
-	unsigned char *data = (unsigned char *)img->data;
-	newdata = (unsigned char *)malloc(img->width * img->height * 4);
-	ptr = newdata;
-	unsigned char a,b,c;
-	//use the first pixel in the image as the transparent color.
-	unsigned char t0 = *(data+0);
-	unsigned char t1 = *(data+1);
-	unsigned char t2 = *(data+2);
-	for (i=0; i<img->width * img->height * 3; i+=3) {
-		a = *(data+0);
-		b = *(data+1);
-		c = *(data+2);
-		*(ptr+0) = a;
-		*(ptr+1) = b;
-		*(ptr+2) = c;
-		*(ptr+3) = 1;
-		if (a==t0 && b==t1 && c==t2)
-			*(ptr+3) = 0;
-		//-----------------------------------------------
-		ptr += 4;
-		data += 3;
-	}
-	return newdata;
 }
