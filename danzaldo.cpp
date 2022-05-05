@@ -57,7 +57,6 @@ public:
     }
 } start("images/start_screen.png"),
   castle("images/castle.png"),
-  forest("images/Forest.png"),
   bomb("images/bomb.png"),
   hylian("images/link.png"),
   credits("images/credits.png");
