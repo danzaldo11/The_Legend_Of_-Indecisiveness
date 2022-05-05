@@ -10,4 +10,8 @@ extern void render_start_screen2();
 extern void init_start_screen2();
 extern void level_select_screen2();
 extern void physics_level_two();
+extern void select_level_two();
+extern void render_level_two(); 
+extern void init_level_two(); 
+
 
