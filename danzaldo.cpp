@@ -168,6 +168,8 @@ void init_start_screen() {
 }
 
 void init_level_one() {
+    //set up variables
+    d.health = 100;
     //OpenGL initialization
     glViewport(0, 0, d.xres, d.yres);
     //Initialize matrices
@@ -307,6 +309,36 @@ void init_level_four() {
                               GL_RGB, GL_UNSIGNED_BYTE, forest.data);
 }
 
+void init_game_over() {
+    //OpenGL initialization
+    glViewport(0, 0, d.xres, d.yres);
+    //Initialize matrices
+    glMatrixMode(GL_PROJECTION); glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW); glLoadIdentity();
+    //This sets 2D mode (no perspective)
+    glOrtho(0, d.xres, 0, d.yres, -1, 1);
+    //
+    //glDisable(GL_LIGHTING);
+    //glDisable(GL_DEPTH_TEST);
+    //glDisable(GL_FOG);
+    //glDisable(GL_CULL_FACE);
+    //
+    //Clear the screen
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    //glClear(GL_COLOR_BUFFER_BIT);
+    //Do this to allow fonts
+    glEnable(GL_TEXTURE_2D);
+    initialize_fonts();
+
+    //background
+    glGenTextures(1, &d.texid_start);
+    glBindTexture(GL_TEXTURE_2D, d.texid_start);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, start.width, start.height, 0,
+                              GL_RGB, GL_UNSIGNED_BYTE, start.data);
+}
+
 void init_level_credits() {
     //OpenGL initialization
     glViewport(0, 0, d.xres, d.yres);
@@ -396,6 +428,10 @@ void select_credits() {
     d.state = STATE_CREDITS;
 }
 
+void game_over() {
+    d.state = STATE_GAME_OVER;
+}
+
 void sprite_move_right() {
     d.sprite_two[0].pos[0] += 10;
 }
@@ -413,40 +449,51 @@ void sprite_move_down() {
 }
 
 void physics_level_one() {
-    //movement
-    d.sprite_one[0].pos[0] += d.sprite_one[0].vel[0];
-    d.sprite_one[0].pos[1] += d.sprite_one[0].vel[1];
-    //boundry test
-    if (d.sprite_one[0].pos[0] >= d.xres) {
-        d.sprite_one[0].pos[0] = d.xres;
-        d.sprite_one[0].vel[0] = 0.0;
+    if (d.state == STATE_LEVEL_ONE) {
+        //movement
+        d.sprite_one[0].pos[0] += d.sprite_one[0].vel[0];
+        d.sprite_one[0].pos[1] += d.sprite_one[0].vel[1];
+        //boundry test
+        if (d.sprite_one[0].pos[0] >= d.xres) {
+            d.sprite_one[0].pos[0] = d.xres;
+            d.sprite_one[0].vel[0] = 0.0;
+        }
+        if (d.sprite_one[0].pos[0] <= 0) {
+            d.sprite_one[0].pos[0] = 0;
+            d.sprite_one[0].vel[0] = 0.0;
+        }
+        if (d.sprite_one[0].pos[1] >= d.yres) {
+            d.sprite_one[0].pos[1] = d.yres;
+            d.sprite_one[0].vel[1] = 0.0;
+        }
+        if (d.sprite_one[0].pos[1] <= 0) {
+            d.sprite_one[0].pos[1] = 0;
+            d.sprite_one[0].vel[1] = 0.0;
+        }
+        //move the bomb
+        Flt cx = d.xres/2.0;
+        Flt cy = d.yres/2.0;
+        cx = d.xres * (218.0/300.0);
+        cy = d.yres * (86.0/169.0);
+        Flt dx = cx - d.sprite_one[0].pos[0];
+        Flt dy = cy - d.sprite_one[0].pos[1];
+        Flt dist = (dx*dx + dy*dy);
+        if (dist < 0.01)
+            dist = 0.01; //clamp
+        d.sprite_one[0].vel[0] += (dx / dist) * d.gravity;
+        d.sprite_one[0].vel[1] += (dy / dist) * d.gravity;
+        d.sprite_one[0].vel[0] += 
+            ((Flt)rand() / (Flt)RAND_MAX) * 0.5 - 0.25;
+        d.sprite_one[0].vel[1] += 
+            ((Flt)rand() / (Flt)RAND_MAX) * 0.5 - 0.25;
+        if ((d.sprite_one[0].pos[0] == d.sprite_two[0].pos[0]) &&
+            (d.sprite_one[0].pos[1] == d.sprite_two[0].pos[1])) {
+            d.health -= 10;
+        }
+        if (d.health < 0) {
+            game_over();
+        }
     }
-    if (d.sprite_one[0].pos[0] <= 0) {
-        d.sprite_one[0].pos[0] = 0;
-        d.sprite_one[0].vel[0] = 0.0;
-    }
-    if (d.sprite_one[0].pos[1] >= d.yres) {
-        d.sprite_one[0].pos[1] = d.yres;
-        d.sprite_one[0].vel[1] = 0.0;
-    }
-    if (d.sprite_one[0].pos[1] <= 0) {
-        d.sprite_one[0].pos[1] = 0;
-        d.sprite_one[0].vel[1] = 0.0;
-    }
-    //move the bomb
-    Flt cx = d.xres/2.0;
-    Flt cy = d.yres/2.0;
-    cx = d.xres * (218.0/300.0);
-    cy = d.yres * (86.0/169.0);
-    Flt dx = cx - d.sprite_one[0].pos[0];
-    Flt dy = cy - d.sprite_one[0].pos[1];
-    Flt dist = (dx*dx + dy*dy);
-    if (dist < 0.01)
-        dist = 0.01; //clamp
-    d.sprite_one[0].vel[0] += (dx / dist) * d.gravity;
-    d.sprite_one[0].vel[1] += (dy / dist) * d.gravity;
-    d.sprite_one[0].vel[0] += ((Flt)rand() / (Flt)RAND_MAX) * 0.5 - 0.25;
-    d.sprite_one[0].vel[1] += ((Flt)rand() / (Flt)RAND_MAX) * 0.5 - 0.25;
 }
 
 void render_start_screen() {
@@ -629,6 +676,35 @@ void render_level_four() {
         r.bot = 20;
         ggprint8b(&r, 16, c, "0 - Level Select");
         ggprint8b(&r, 16, c, "To select level type the corresponding number");
+    }
+}
+
+void render_game_over() {
+    if (d.state == STATE_GAME_OVER) {
+        glClear(GL_COLOR_BUFFER_BIT);     
+        glColor3ub(211, 193, 253);
+        //dark mode
+        //glColor3ub(80, 80, 160);
+        glBindTexture(GL_TEXTURE_2D, d.texid_start);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0,1); glVertex2i(0,      0);
+            glTexCoord2f(0,0); glVertex2i(0,      d.yres);
+            glTexCoord2f(1,0); glVertex2i(d.xres, d.yres);
+            glTexCoord2f(1,1); glVertex2i(d.xres, 0);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        Rect r;
+        unsigned int c = 0x00ffff44;
+        r.bot = d.yres - 20;
+        r.left = 10;
+        r.center = 0;
+        ggprint8b(&r, 0, c, "GAME OVER");
+        r.left = 10;
+        r.bot = 25;
+        ggprint8b(&r, 16, c, "0 - Level Select");
+        ggprint8b(&r, 16, c,
+                "To select level type the corresponding number");
     }
 }
 

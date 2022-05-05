@@ -4,7 +4,6 @@
 extern void level_select_screen();
 extern void select_level_one();
 extern void select_level_two();
-extern void select_level_three();
 extern void select_level_four();
 extern void select_start_screen();
 extern void select_credits();
@@ -20,12 +19,12 @@ extern void render_start_screen();
 extern void render_credits_screen();
 extern void render_level_one();
 extern void render_level_two();
-extern void render_level_three();
 extern void render_level_four();
+extern void render_game_over();
 //init OpenGL
 extern void init_start_screen();
 extern void init_level_one();
 extern void init_level_two();
-extern void init_level_three();
 extern void init_level_four();
 extern void init_level_credits();
+extern void init_game_over();
