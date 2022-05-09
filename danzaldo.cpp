@@ -59,6 +59,7 @@ public:
   castle("images/castle.png"),
   bomb("images/bomb.png"),
   hylian("images/link.png"),
+  rupee("images/rupee.png"),
   credits("images/credits.png");
 
 struct Vector {
@@ -72,6 +73,7 @@ enum {
     STATE_LEVEL_THREE,
     STATE_LEVEL_FOUR,
     STATE_GAME_OVER,
+    STATE_GAME_WIN,
     STATE_CREDITS,
 };
 
@@ -102,6 +104,7 @@ public:
     int xres, yres;
     Sprite sprite_one[2];
     Sprite sprite_two[2];
+    Sprite sprite_three[2];
     unsigned int texid_start;
     unsigned int texid_one;
     //unsigned int texid_two;
@@ -110,6 +113,7 @@ public:
     unsigned int texid_credits;
     unsigned int spriteid_one;
     unsigned int spriteid_two;
+    unsigned int spriteid_three;
     //the box components
     float pos[2];
     float w;
@@ -119,9 +123,10 @@ public:
     int frameno;
     int state;
     int health;
+    int rupees;
     Global() {
-        xres = 400;
-        yres = 200;
+        xres = 800;
+        yres = 400;
         //box
         w = 20.0f;
         pos[0] = 0.0f + w;
@@ -132,6 +137,7 @@ public:
         frameno = 1.0;
         state = STATE_INTRO;
         health = 100;
+        rupees = 0;
     }
 } d;
 
@@ -245,6 +251,31 @@ void init_level_one() {
                                    GL_RGBA, GL_UNSIGNED_BYTE, data2);
     delete [] data2;
     d.sprite_two[0].set_dimensions(d.xres, d.yres);
+
+    unsigned char *data3 = new unsigned char
+        [rupee.width * rupee.height * 4];
+    for (int i=0; i<rupee.height; i++) {
+        for (int j=0; j<rupee.width; j++) {
+            int offset  = i*rupee.width*3 + j*3;
+            int offset2 = i*rupee.width*4 + j*4;
+            data3[offset2+0] = rupee.data[offset+0];
+            data3[offset2+1] = rupee.data[offset+1];
+            data3[offset2+2] = rupee.data[offset+2];
+            data3[offset2+3] =
+            ((unsigned char)rupee.data[offset+0] != 0 &&
+             (unsigned char)rupee.data[offset+1] != 0 &&
+             (unsigned char)rupee.data[offset+2] != 0);
+        }
+    }
+    //sprite rupee
+    glGenTextures(1, &d.spriteid_three);
+    glBindTexture(GL_TEXTURE_2D, d.spriteid_three);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rupee.width, rupee.height, 0,
+                                   GL_RGBA, GL_UNSIGNED_BYTE, data3);
+    delete [] data3;
+    d.sprite_three[0].set_dimensions(d.xres, d.yres);
 }
 
 void init_game_over() {
@@ -326,8 +357,8 @@ void credits_screen() {
     Rect r;
 
     unsigned int c = 0x004ea4f2;
-    r.bot = 185;
-    r.left = 200;
+    r.bot = 200;
+    r.left = 400;
     ggprint8b(&r, 16, c, "Credits Page");
     ggprint8b(&r, 16, c, "---Level One---");
     ggprint8b(&r, 16, c, "Dylan Anzaldo");
@@ -356,6 +387,10 @@ void select_credits() {
 
 void game_over() {
     d.state = STATE_GAME_OVER;
+}
+
+void game_win() {
+    d.state = STATE_GAME_WIN;
 }
 
 void sprite_move_right() {
@@ -399,8 +434,8 @@ void physics_level_one() {
         //move the bomb
         Flt cx = d.xres/2.0;
         Flt cy = d.yres/2.0;
-        cx = d.xres * (218.0/300.0);
-        cy = d.yres * (86.0/169.0);
+        cx = d.xres * (218.0/400.0);
+        cy = d.yres * (86.0/200.0);
         Flt dx = cx - d.sprite_one[0].pos[0];
         Flt dy = cy - d.sprite_one[0].pos[1];
         Flt dist = (dx*dx + dy*dy);
@@ -418,6 +453,15 @@ void physics_level_one() {
         }
         if (d.health < 0) {
             game_over();
+        }
+        d.sprite_three[0].pos[0] = 400;
+        d.sprite_three[0].pos[1] = 200;
+        if ((d.sprite_one[0].pos[0] == d.sprite_three[0].pos[0]) &&
+            (d.sprite_one[0].pos[1] == d.sprite_three[0].pos[1])) {
+            d.rupees += 1;
+        }
+        if (d.rupees == 10) {
+            game_win();
         }
     }
 }
@@ -531,14 +575,44 @@ void render_level_one() {
         glDisable(GL_ALPHA_TEST);
         glPopMatrix();
 
+        //Draw rupee sprite
+        glPushMatrix();
+        glColor3ub(255, 255, 255);
+        glTranslatef(d.sprite_three[0].pos[0], 
+                d.sprite_three[0].pos[1], 0.0f);
+        //set alpha test
+        //https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/
+        //xhtml/glAlphaFunc.xml
+        glEnable(GL_ALPHA_TEST);
+        //transparent if alpha value is greater than 0.0
+        glAlphaFunc(GL_GREATER, 0.0f);
+        //Set 4-channels of color intensity
+        glColor4ub(255,255,255,255);
+        //
+        glBindTexture(GL_TEXTURE_2D, d.spriteid_three);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0, 1); glVertex2f(-d.sprite_three[0].w, 
+                                          -d.sprite_three[0].h);
+            glTexCoord2f(0, 0); glVertex2f(-d.sprite_three[0].w,  
+                                           d.sprite_three[0].h);
+            glTexCoord2f(1, 0); glVertex2f( d.sprite_three[0].w,  
+                                           d.sprite_three[0].h);
+            glTexCoord2f(1, 1); glVertex2f( d.sprite_three[0].w, 
+                                          -d.sprite_three[0].h);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDisable(GL_ALPHA_TEST);
+        glPopMatrix();
+
         Rect r;
         unsigned int c = 0x00ffff44;
         r.bot = d.yres - 20;
         r.left = 10;
         r.center = 0;
         ggprint8b(&r, 0, c, "Level 1");
-        r.left = 310;
+        r.left = d.xres - 100;
         ggprint8b(&r, 16, c, "Health: %i", d.health);
+        ggprint8b(&r, 16, c, "Rupees: %i", d.rupees);
         ggprint8b(&r, 16, c, "W - Move Up");
         ggprint8b(&r, 16, c, "A - Move Left");
         ggprint8b(&r, 16, c, "S - Move Down");
@@ -572,6 +646,35 @@ void render_game_over() {
         r.left = 10;
         r.center = 0;
         ggprint8b(&r, 0, c, "GAME OVER");
+        r.left = 10;
+        r.bot = 25;
+        ggprint8b(&r, 16, c, "0 - Level Select");
+        ggprint8b(&r, 16, c,
+                "To select level type the corresponding number");
+    }
+}
+
+void render_game_win() {
+    if (d.state == STATE_GAME_WIN) {
+        glClear(GL_COLOR_BUFFER_BIT);
+        glColor3ub(211, 193, 253);
+        //dark mode
+        //glColor3ub(80, 80, 160);
+        glBindTexture(GL_TEXTURE_2D, d.texid_start);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0,1); glVertex2i(0,      0);
+            glTexCoord2f(0,0); glVertex2i(0,      d.yres);
+            glTexCoord2f(1,0); glVertex2i(d.xres, d.yres);
+            glTexCoord2f(1,1); glVertex2i(d.xres, 0);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        Rect r;
+        unsigned int c = 0x00ffff44;
+        r.bot = d.yres - 20;
+        r.left = 10;
+        r.center = 0;
+        ggprint8b(&r, 0, c, "GAME WIN");
         r.left = 10;
         r.bot = 25;
         ggprint8b(&r, 16, c, "0 - Level Select");

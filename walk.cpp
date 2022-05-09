@@ -72,8 +72,8 @@ class Global {
 public:
 	int xres, yres;
 	Global() {
-		xres = 400;
-        yres = 200;
+		xres = 800;
+        yres = 400;
 	}
 } g;
 
