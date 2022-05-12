@@ -198,7 +198,6 @@ void init() {
     init_level_three();
     init_level_four();
     init_level_credits();
-    init_game_over();
 }
 
 void checkMouse(XEvent *e)
@@ -317,4 +316,5 @@ void render(void) {
     render_level_three();
     render_level_four();
     render_game_over();
+    render_game_win();
 }

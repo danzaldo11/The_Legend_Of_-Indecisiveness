@@ -17,8 +17,8 @@ extern void render_start_screen();
 extern void render_credits_screen();
 extern void render_level_one();
 extern void render_game_over();
+extern void render_game_win();
 //init OpenGL
 extern void init_start_screen();
 extern void init_level_one();
 extern void init_level_credits();
-extern void init_game_over();

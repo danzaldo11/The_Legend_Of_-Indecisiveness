@@ -124,6 +124,7 @@ public:
     int state;
     int health;
     int rupees;
+    int goal;
     Global() {
         xres = 800;
         yres = 400;
@@ -138,6 +139,7 @@ public:
         state = STATE_INTRO;
         health = 100;
         rupees = 0;
+        goal = 10;
     }
 } d;
 
@@ -278,37 +280,9 @@ void init_level_one() {
     d.sprite_three[0].set_dimensions(d.xres, d.yres);
 }
 
-void init_game_over() {
-    //OpenGL initialization
-    glViewport(0, 0, d.xres, d.yres);
-    //Initialize matrices
-    glMatrixMode(GL_PROJECTION); glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW); glLoadIdentity();
-    //This sets 2D mode (no perspective)
-    glOrtho(0, d.xres, 0, d.yres, -1, 1);
-    //
-    //glDisable(GL_LIGHTING);
-    //glDisable(GL_DEPTH_TEST);
-    //glDisable(GL_FOG);
-    //glDisable(GL_CULL_FACE);
-    //
-    //Clear the screen
-    glClearColor(1.0, 1.0, 1.0, 1.0);
-    //glClear(GL_COLOR_BUFFER_BIT);
-    //Do this to allow fonts
-    glEnable(GL_TEXTURE_2D);
-    initialize_fonts();
-
-    //background
-    glGenTextures(1, &d.texid_start);
-    glBindTexture(GL_TEXTURE_2D, d.texid_start);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, start.width, start.height, 0,
-                              GL_RGB, GL_UNSIGNED_BYTE, start.data);
-}
-
 void init_level_credits() {
+    //Set variables
+    d.goal = 10;
     //OpenGL initialization
     glViewport(0, 0, d.xres, d.yres);
     //Initialize matrices
@@ -345,7 +319,7 @@ void level_select_screen() {
     r.bot = 80;
     r.left = 10;
     r.center = 0;
-    ggprint8b(&r, 16, c, "1 - Level One");
+    ggprint8b(&r, 16, c, "1 - Level One (Goal: %i)", d.goal);
     ggprint8b(&r, 16, c, "2 - Level Two");
     ggprint8b(&r, 16, c, "3 - Level Three");
     ggprint8b(&r, 16, c, "4 - Level Four");
@@ -374,6 +348,12 @@ void credits_screen() {
 }
 
 void select_level_one() {
+    d.sprite_one[0].pos[0] = rand() % 800;
+    d.sprite_one[0].pos[1] = rand() % 400;
+    d.sprite_three[0].pos[0] = rand() % 800;
+    d.sprite_three[0].pos[1] = rand() % 400;
+    d.health = 100;
+    d.rupees = 0;
     d.state = STATE_LEVEL_ONE;
 }
 
@@ -394,19 +374,19 @@ void game_win() {
 }
 
 void sprite_move_right() {
-    d.sprite_two[0].pos[0] += 10;
+    d.sprite_two[0].pos[0] += 20;
 }
 
 void sprite_move_left() {
-    d.sprite_two[0].pos[0] += -10;
+    d.sprite_two[0].pos[0] += -20;
 }
 
 void sprite_move_up() {
-    d.sprite_two[0].pos[1] += 10;
+    d.sprite_two[0].pos[1] += 20;
 }
 
 void sprite_move_down() {
-    d.sprite_two[0].pos[1] += -10;
+    d.sprite_two[0].pos[1] += -20;
 }
 
 void physics_level_one() {
@@ -414,7 +394,7 @@ void physics_level_one() {
         //movement
         d.sprite_one[0].pos[0] += d.sprite_one[0].vel[0];
         d.sprite_one[0].pos[1] += d.sprite_one[0].vel[1];
-        //boundry test
+        //boundry test enemy
         if (d.sprite_one[0].pos[0] >= d.xres) {
             d.sprite_one[0].pos[0] = d.xres;
             d.sprite_one[0].vel[0] = 0.0;
@@ -430,6 +410,23 @@ void physics_level_one() {
         if (d.sprite_one[0].pos[1] <= 0) {
             d.sprite_one[0].pos[1] = 0;
             d.sprite_one[0].vel[1] = 0.0;
+        }
+        //boundary test player
+        if (d.sprite_two[0].pos[0] >= d.xres) {
+            d.sprite_two[0].pos[0] = d.xres;
+            d.sprite_two[0].vel[0] = 0.0;
+        }        
+        if (d.sprite_two[0].pos[0] <= 0) {
+            d.sprite_two[0].pos[0] = 0;
+            d.sprite_two[0].vel[0] = 0.0;
+        }
+        if (d.sprite_two[0].pos[1] >= d.yres) {
+            d.sprite_two[0].pos[1] = d.yres;
+            d.sprite_two[0].vel[1] = 0.0;
+        }
+        if (d.sprite_two[0].pos[1] <= 0) {
+            d.sprite_two[0].pos[1] = 0;
+            d.sprite_two[0].vel[1] = 0.0;
         }
         //move the bomb
         Flt cx = d.xres/2.0;
@@ -447,20 +444,30 @@ void physics_level_one() {
             ((Flt)rand() / (Flt)RAND_MAX) * 0.5 - 0.25;
         d.sprite_one[0].vel[1] += 
             ((Flt)rand() / (Flt)RAND_MAX) * 0.5 - 0.25;
-        if ((d.sprite_one[0].pos[0] == d.sprite_two[0].pos[0]) &&
-            (d.sprite_one[0].pos[1] == d.sprite_two[0].pos[1])) {
+        //enemy collison
+        if (((d.sprite_two[0].pos[0]+40 > d.sprite_one[0].pos[0]-40) &&
+           (d.sprite_two[0].pos[0]-40 < d.sprite_one[0].pos[0]+40)) &&
+           ((d.sprite_two[0].pos[1]+40 > d.sprite_one[0].pos[1]-40) &&
+           (d.sprite_two[0].pos[1]-40 < d.sprite_one[0].pos[1]+40))) {
             d.health -= 10;
+            d.sprite_one[0].pos[0] = rand() % 800;
+            d.sprite_one[0].pos[0] = rand() % 400;
         }
-        if (d.health < 0) {
+        //coin collison
+        if (((d.sprite_two[0].pos[0]+40 > d.sprite_three[0].pos[0]-40) &&
+            (d.sprite_two[0].pos[0]-40 < d.sprite_three[0].pos[0]+40)) &&
+            ((d.sprite_two[0].pos[1]+40 > d.sprite_three[0].pos[1]-40) &&
+            (d.sprite_two[0].pos[1]-40 < d.sprite_three[0].pos[1]+40))) {
+            d.rupees += 1;
+            d.sprite_three[0].pos[0] = rand() % 800;
+            d.sprite_three[0].pos[0] = rand() % 400;
+        }
+        //game over check
+        if (d.health <= 0) {
             game_over();
         }
-        d.sprite_three[0].pos[0] = 400;
-        d.sprite_three[0].pos[1] = 200;
-        if ((d.sprite_one[0].pos[0] == d.sprite_three[0].pos[0]) &&
-            (d.sprite_one[0].pos[1] == d.sprite_three[0].pos[1])) {
-            d.rupees += 1;
-        }
-        if (d.rupees == 10) {
+        if (d.rupees >= d.goal) {
+            d.goal += 10;
             game_win();
         }
     }
@@ -611,8 +618,8 @@ void render_level_one() {
         r.center = 0;
         ggprint8b(&r, 0, c, "Level 1");
         r.left = d.xres - 100;
-        ggprint8b(&r, 16, c, "Health: %i", d.health);
-        ggprint8b(&r, 16, c, "Rupees: %i", d.rupees);
+        ggprint8b(&r, 16, c, "Health: %i/100", d.health);
+        ggprint8b(&r, 16, c, "Rupees: %i/%i", d.rupees, d.goal);
         ggprint8b(&r, 16, c, "W - Move Up");
         ggprint8b(&r, 16, c, "A - Move Left");
         ggprint8b(&r, 16, c, "S - Move Down");
@@ -642,10 +649,10 @@ void render_game_over() {
 
         Rect r;
         unsigned int c = 0x00ffff44;
-        r.bot = d.yres - 20;
-        r.left = 10;
+        r.bot = d.yres/2;
+        r.left = (d.xres/2) -50;
         r.center = 0;
-        ggprint8b(&r, 0, c, "GAME OVER");
+        ggprint16(&r, 0, c, "GAME OVER");
         r.left = 10;
         r.bot = 25;
         ggprint8b(&r, 16, c, "0 - Level Select");
@@ -671,10 +678,10 @@ void render_game_win() {
 
         Rect r;
         unsigned int c = 0x00ffff44;
-        r.bot = d.yres - 20;
-        r.left = 10;
+        r.bot = d.yres/2;
+        r.left = (d.xres/2) -50;
         r.center = 0;
-        ggprint8b(&r, 0, c, "GAME WIN");
+        ggprint16(&r, 0, c, "GAME WIN");
         r.left = 10;
         r.bot = 25;
         ggprint8b(&r, 16, c, "0 - Level Select");
